@@ -1,4 +1,4 @@
-# Enkai
+# Enkai - 
 
 A beautiful TUI (Terminal User Interface) tool for handling git conflicts during merge or rebase operations.
 
