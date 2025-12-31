@@ -1,0 +1,17 @@
+[package]
+name = "enkai"
+version = "0.1.0"
+edition = "2021"
+authors = ["Igor Vieira"]
+description = "A TUI tool for handling git conflicts during merge or rebase"
+license = "MIT"
+
+[dependencies]
+ratatui = "0.26"
+crossterm = "0.27"
+git2 = "0.18"
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3.8"
