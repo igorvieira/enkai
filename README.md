@@ -24,8 +24,9 @@ enkai
 - `q` - Sair
 
 ### Visualização de Código
-- `j/k` ou `↑/↓` - Próximo/anterior conflito
-- `Ctrl+d/Ctrl+u` - **Scroll** para baixo/cima
+- `j/k` ou `↑/↓` - **Scroll** linha por linha
+- `Ctrl+d/Ctrl+u` - **Scroll** meia página (rápido)
+- `n/p` - Próximo/anterior **conflito**
 - `c` - Aceitar **Current** (HEAD) para o conflito atual
 - `i` - Aceitar **Incoming** para o conflito atual
 - `b` - Aceitar **Both** para o conflito atual
@@ -44,10 +45,11 @@ enkai
 1. Detecta conflitos git no repositório
 2. Mostra lista de arquivos com conflitos
 3. Use `Tab` para ir para a visualização de código
-4. Navegue pelos conflitos com `j/k`
-5. Para cada conflito, escolha: `c` (Current), `i` (Incoming) ou `b` (Both)
-6. Quando todos os conflitos estiverem resolvidos, pressione `s` para salvar
-7. Vá para o próximo arquivo ou, se for rebase, escolha continuar/abortar/pular
+4. Use `j/k` para fazer scroll e ver todo o arquivo
+5. Use `n/p` para navegar entre conflitos
+6. Para cada conflito, escolha: `c` (Current), `i` (Incoming) ou `b` (Both)
+7. Quando todos os conflitos estiverem resolvidos, pressione `s` para salvar
+8. Vá para o próximo arquivo ou, se for rebase, escolha continuar/abortar/pular
 
 ## Estrutura
 

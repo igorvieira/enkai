@@ -380,9 +380,9 @@ fn render_footer(
         Line::from(vec![
             Span::styled("keys: ", Style::default().fg(white)),
             Span::styled("j/k", Style::default().fg(white).add_modifier(Modifier::BOLD)),
-            Span::styled("=navigate ", Style::default().fg(white)),
-            Span::styled("ctrl+d/u", Style::default().fg(white).add_modifier(Modifier::BOLD)),
             Span::styled("=scroll ", Style::default().fg(white)),
+            Span::styled("n/p", Style::default().fg(white).add_modifier(Modifier::BOLD)),
+            Span::styled("=conflicts ", Style::default().fg(white)),
             Span::styled("c", Style::default().fg(white).add_modifier(Modifier::BOLD)),
             Span::styled("=current ", Style::default().fg(white)),
             Span::styled("i", Style::default().fg(white).add_modifier(Modifier::BOLD)),
@@ -393,8 +393,6 @@ fn render_footer(
             Span::styled("=undo ", Style::default().fg(white)),
             Span::styled("s", Style::default().fg(white).add_modifier(Modifier::BOLD)),
             Span::styled("=save ", Style::default().fg(white)),
-            Span::styled("tab", Style::default().fg(white).add_modifier(Modifier::BOLD)),
-            Span::styled("=files ", Style::default().fg(white)),
             Span::styled("q", Style::default().fg(white).add_modifier(Modifier::BOLD)),
             Span::styled("=quit", Style::default().fg(white)),
         ])

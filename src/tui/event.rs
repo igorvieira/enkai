@@ -60,7 +60,7 @@ fn handle_file_list_focus_keys(state: &mut AppState, key: KeyEvent) -> Result<()
 }
 
 fn handle_code_view_focus_keys(state: &mut AppState, key: KeyEvent) -> Result<()> {
-    // Handle Ctrl+d and Ctrl+u for scrolling
+    // Handle Ctrl+d and Ctrl+u for scrolling (half page)
     if key.modifiers.contains(KeyModifiers::CONTROL) {
         match key.code {
             KeyCode::Char('d') => {
@@ -83,10 +83,18 @@ fn handle_code_view_focus_keys(state: &mut AppState, key: KeyEvent) -> Result<()
 
     match key.code {
         KeyCode::Char('j') | KeyCode::Down => {
+            // Scroll down one line
+            state.scroll_down();
+        }
+        KeyCode::Char('k') | KeyCode::Up => {
+            // Scroll up one line
+            state.scroll_up();
+        }
+        KeyCode::Char('n') => {
             // Navigate to next conflict in current file
             state.next_conflict();
         }
-        KeyCode::Char('k') | KeyCode::Up => {
+        KeyCode::Char('p') => {
             // Navigate to previous conflict in current file
             state.previous_conflict();
         }

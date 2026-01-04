@@ -182,16 +182,12 @@ impl AppState {
 
     /// Scroll down in code view
     pub fn scroll_down(&mut self) {
-        if self.focus == PaneFocus::CodeView {
-            self.scroll_offset = self.scroll_offset.saturating_add(1);
-        }
+        self.scroll_offset = self.scroll_offset.saturating_add(1);
     }
 
     /// Scroll up in code view
     pub fn scroll_up(&mut self) {
-        if self.focus == PaneFocus::CodeView {
-            self.scroll_offset = self.scroll_offset.saturating_sub(1);
-        }
+        self.scroll_offset = self.scroll_offset.saturating_sub(1);
     }
 
     /// Reset scroll when changing files or conflicts
