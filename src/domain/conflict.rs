@@ -85,6 +85,13 @@ impl ConflictedFile {
         }
     }
 
+    /// Clear resolution for a specific conflict (undo)
+    pub fn clear_resolution(&mut self, conflict_index: usize) {
+        if conflict_index < self.resolutions.len() {
+            self.resolutions[conflict_index] = None;
+        }
+    }
+
     /// Get the file name as a string
     pub fn file_name(&self) -> String {
         self.path

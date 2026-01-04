@@ -18,15 +18,23 @@ pub fn parse_conflicts(file_path: &Path) -> Result<ConflictedFile> {
     let mut i = 0;
 
     while i < lines.len() {
-        if lines[i].starts_with(CONFLICT_START) {
+        // Safe indexing with bounds check
+        let line = match lines.get(i) {
+            Some(l) => l,
+            None => break, // Should never happen due to while condition, but safe
+        };
+
+        if line.starts_with(CONFLICT_START) {
             let conflict_start_line = i;
 
-            // Find separator
+            // Find separator with safe indexing
             let mut separator_line = None;
             for j in (i + 1)..lines.len() {
-                if lines[j].starts_with(CONFLICT_SEPARATOR) {
-                    separator_line = Some(j);
-                    break;
+                if let Some(line) = lines.get(j) {
+                    if line.starts_with(CONFLICT_SEPARATOR) {
+                        separator_line = Some(j);
+                        break;
+                    }
                 }
             }
 
@@ -41,12 +49,14 @@ pub fn parse_conflicts(file_path: &Path) -> Result<ConflictedFile> {
                 }
             };
 
-            // Find end marker
+            // Find end marker with safe indexing
             let mut end_line = None;
             for j in (separator_line + 1)..lines.len() {
-                if lines[j].starts_with(CONFLICT_END) {
-                    end_line = Some(j);
-                    break;
+                if let Some(line) = lines.get(j) {
+                    if line.starts_with(CONFLICT_END) {
+                        end_line = Some(j);
+                        break;
+                    }
                 }
             }
 
@@ -61,9 +71,24 @@ pub fn parse_conflicts(file_path: &Path) -> Result<ConflictedFile> {
                 }
             };
 
-            // Extract current and incoming content
-            let current_lines = &lines[(conflict_start_line + 1)..separator_line];
-            let incoming_lines = &lines[(separator_line + 1)..end_line];
+            // Extract current and incoming content with safe slicing
+            let current_lines = lines
+                .get((conflict_start_line + 1)..separator_line)
+                .ok_or_else(|| anyhow::anyhow!(
+                    "Invalid conflict range in {}: lines {}-{}",
+                    file_path.display(),
+                    conflict_start_line + 1,
+                    separator_line
+                ))?;
+
+            let incoming_lines = lines
+                .get((separator_line + 1)..end_line)
+                .ok_or_else(|| anyhow::anyhow!(
+                    "Invalid conflict range in {}: lines {}-{}",
+                    file_path.display(),
+                    separator_line + 1,
+                    end_line
+                ))?;
 
             let current = current_lines.join("\n");
             let incoming = incoming_lines.join("\n");

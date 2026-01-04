@@ -1,37 +1,40 @@
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    widgets::{List, ListItem, Paragraph},
     Frame,
 };
 
 use crate::app::AppState;
+use crate::tui::colors::EnkaiColors;
 
 pub fn render_rebase_actions(frame: &mut Frame, _state: &AppState, area: Rect) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(5),  // Header
+            Constraint::Length(4),  // Header
             Constraint::Min(0),     // Actions
-            Constraint::Length(3),  // Footer
+            Constraint::Length(2),  // Footer
         ])
         .split(area);
 
-    // Header
+    // Header - no borders
     let header = Paragraph::new(vec![
         Line::from(vec![
             Span::styled(
                 "All Conflicts Resolved!",
                 Style::default()
-                    .fg(Color::Green)
+                    .fg(EnkaiColors::SUCCESS)
                     .add_modifier(Modifier::BOLD),
             ),
         ]),
         Line::from(""),
-        Line::from("What would you like to do with the rebase?"),
+        Line::from(Span::styled(
+            "What would you like to do with the rebase?",
+            Style::default().fg(EnkaiColors::TEXT_NORMAL),
+        )),
     ])
-    .block(Block::default().borders(Borders::ALL))
     .alignment(Alignment::Center);
 
     frame.render_widget(header, chunks[0]);
@@ -42,47 +45,52 @@ pub fn render_rebase_actions(frame: &mut Frame, _state: &AppState, area: Rect) {
             Span::styled(
                 "c",
                 Style::default()
-                    .fg(Color::Green)
+                    .fg(EnkaiColors::CONFLICT_CURRENT)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::raw(" - Continue rebase (git rebase --continue)"),
+            Span::styled(
+                " - Continue rebase (git rebase --continue)",
+                Style::default().fg(EnkaiColors::TEXT_NORMAL),
+            ),
         ])),
         ListItem::new(Line::from(vec![
             Span::styled(
                 "a",
                 Style::default()
-                    .fg(Color::Red)
+                    .fg(EnkaiColors::ERROR)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::raw(" - Abort rebase (git rebase --abort)"),
+            Span::styled(
+                " - Abort rebase (git rebase --abort)",
+                Style::default().fg(EnkaiColors::TEXT_NORMAL),
+            ),
         ])),
         ListItem::new(Line::from(vec![
             Span::styled(
                 "s",
                 Style::default()
-                    .fg(Color::Yellow)
+                    .fg(EnkaiColors::WARNING)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::raw(" - Skip current commit (git rebase --skip)"),
+            Span::styled(
+                " - Skip current commit (git rebase --skip)",
+                Style::default().fg(EnkaiColors::TEXT_NORMAL),
+            ),
         ])),
     ];
 
-    let list = List::new(actions).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title("Rebase Actions"),
-    );
+    // No borders on list
+    let list = List::new(actions);
 
     frame.render_widget(list, chunks[1]);
 
-    // Footer
-    let footer = Paragraph::new(vec![Line::from(vec![
-        Span::styled("q", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" or "),
-        Span::styled("Esc", Style::default().add_modifier(Modifier::BOLD)),
-        Span::raw(" - Exit without taking action"),
-    ])])
-    .block(Block::default().borders(Borders::ALL))
+    // Footer - no borders
+    let footer = Paragraph::new(Line::from(vec![
+        Span::styled("q", Style::default().fg(EnkaiColors::PINK_HOT).add_modifier(Modifier::BOLD)),
+        Span::styled("=Exit  ", Style::default().fg(EnkaiColors::TEXT_DIM)),
+        Span::styled("Esc", Style::default().fg(EnkaiColors::PINK_HOT).add_modifier(Modifier::BOLD)),
+        Span::styled("=Cancel", Style::default().fg(EnkaiColors::TEXT_DIM)),
+    ]))
     .alignment(Alignment::Center);
 
     frame.render_widget(footer, chunks[2]);

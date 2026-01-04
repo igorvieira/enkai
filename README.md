@@ -1,171 +1,77 @@
-# Enkai - 
+# Enkai
 
-A beautiful TUI (Terminal User Interface) tool for handling git conflicts during merge or rebase operations.
+Uma ferramenta TUI para resolver conflitos git durante merge ou rebase.
 
-## Features
-
-- 🎯 **Intuitive Interface**: Navigate conflicts with vim-style keybindings or arrow keys
-- 📝 **Visual Conflict Resolution**: See current and incoming changes side-by-side
-- 🔄 **Rebase Integration**: Seamlessly continue, skip, or abort rebases after resolving conflicts
-- ⚡ **Fast & Efficient**: Built in Rust with ratatui for a smooth experience
-- 🎨 **Clear Visual Feedback**: Color-coded status indicators and progress tracking
-
-## Installation
-
-### Quick Install (Recommended)
+## Instalação
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/enkai/main/install.sh | sh
-```
-
-### From Source
-
-Requires Rust toolchain (1.70+):
-
-```bash
-git clone https://github.com/YOUR_USERNAME/enkai.git
-cd enkai
 cargo install --path .
 ```
 
-### Manual Binary Download
+## Uso
 
-Download the latest release for your platform from the [releases page](https://github.com/YOUR_USERNAME/enkai/releases).
-
-## Usage
-
-When you have git conflicts during a merge or rebase:
+Quando tiver conflitos git:
 
 ```bash
-# Automatically detect and show all conflicted files
 enkai
-
-# Or specify specific files
-enkai src/main.rs src/lib.rs
 ```
 
-## Keybindings
+## Comandos
 
-### File List View
+### Lista de Arquivos
+- `j/k` ou `↑/↓` - Navegar
+- `Tab` - Alternar para visualização de código
+- `q` - Sair
 
-| Key | Action |
-|-----|--------|
-| `j` / `↓` | Move down |
-| `k` / `↑` | Move up |
-| `Enter` | Open selected file |
-| `q` | Quit |
+### Visualização de Código
+- `j/k` ou `↑/↓` - Próximo/anterior conflito
+- `Ctrl+d/Ctrl+u` - **Scroll** para baixo/cima
+- `c` - Aceitar **Current** (HEAD) para o conflito atual
+- `i` - Aceitar **Incoming** para o conflito atual
+- `b` - Aceitar **Both** para o conflito atual
+- `u` - **Desfazer** resolução do conflito atual
+- `s` - **Salvar** arquivo (após resolver todos os conflitos)
+- `Tab` - Voltar para lista de arquivos
+- `q` - Sair
 
-### Conflict Resolution View
+### Após Resolver (Rebase)
+- `c` - Continuar rebase
+- `a` - Abortar rebase
+- `s` - Pular commit
 
-| Key | Action |
-|-----|--------|
-| `c` | Accept **Current** (HEAD) changes |
-| `i` | Accept **Incoming** changes |
-| `b` | Accept **Both** changes |
-| `j` / `↓` | Next conflict |
-| `k` / `↑` | Previous conflict |
-| `s` | **Save** file (only when all conflicts resolved) |
-| `Esc` | Back to file list |
-| `q` | Quit |
+## Como Funciona
 
-### Rebase Actions View
+1. Detecta conflitos git no repositório
+2. Mostra lista de arquivos com conflitos
+3. Use `Tab` para ir para a visualização de código
+4. Navegue pelos conflitos com `j/k`
+5. Para cada conflito, escolha: `c` (Current), `i` (Incoming) ou `b` (Both)
+6. Quando todos os conflitos estiverem resolvidos, pressione `s` para salvar
+7. Vá para o próximo arquivo ou, se for rebase, escolha continuar/abortar/pular
 
-(Appears after resolving all conflicts during a rebase)
-
-| Key | Action |
-|-----|--------|
-| `c` | **Continue** rebase (`git rebase --continue`) |
-| `a` | **Abort** rebase (`git rebase --abort`) |
-| `s` | **Skip** current commit (`git rebase --skip`) |
-| `q` / `Esc` | Exit without action |
-
-## Workflow Example
-
-1. Start a merge or rebase that results in conflicts:
-   ```bash
-   git merge feature-branch
-   # or
-   git rebase main
-   ```
-
-2. Launch enkai:
-   ```bash
-   enkai
-   ```
-
-3. Navigate through files and resolve conflicts:
-   - Use `j`/`k` or arrow keys to select a file
-   - Press `Enter` to open it
-   - For each conflict, choose `c` (current), `i` (incoming), or `b` (both)
-   - Navigate between conflicts with `j`/`k`
-   - Press `s` to save when done
-
-4. If it's a rebase, choose what to do next:
-   - Press `c` to continue the rebase
-   - Or handle it manually later
-
-## How It Works
-
-Enkai parses git conflict markers in your files:
+## Estrutura
 
 ```
-<<<<<<< HEAD
-current changes
-=======
-incoming changes
->>>>>>> branch-name
+src/
+├── domain/     # Modelos de dados
+├── app/        # Estado da aplicação
+├── git/        # Integração com git
+└── tui/        # Interface do usuário
 ```
 
-And presents them in a clean interface where you can:
-- See both versions side-by-side
-- Choose which version to keep
-- Track your progress across multiple conflicts and files
-
-## Development
-
-### Building
+## Desenvolvimento
 
 ```bash
+# Build
 cargo build --release
-```
 
-The binary will be at `target/release/enkai`.
-
-### Running Tests
-
-```bash
+# Testes
 cargo test
+
+# Lint
+cargo clippy
 ```
 
-### Project Structure
+## Licença
 
-```
-enkai/
-├── src/
-│   ├── app/           # Application state management
-│   ├── domain/        # Core domain models
-│   ├── git/           # Git integration
-│   └── tui/           # Terminal UI
-│       └── views/     # UI components
-├── Cargo.toml
-└── README.md
-```
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Acknowledgments
-
-Built with:
-- [ratatui](https://ratatui.rs/) - Terminal UI framework
-- [git2-rs](https://github.com/rust-lang/git2-rs) - Git bindings for Rust
-- [crossterm](https://github.com/crossterm-rs/crossterm) - Terminal manipulation
-
----
-
-Made with ❤️ by Igor Vieira
+MIT

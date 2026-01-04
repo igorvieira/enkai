@@ -19,15 +19,26 @@ pub fn apply_resolutions(conflicted_file: &ConflictedFile) -> Result<()> {
     let mut current_line = 0;
 
     for (i, conflict) in conflicted_file.conflicts.iter().enumerate() {
-        // Add lines before this conflict
+        // Add lines before this conflict with safe indexing
         while current_line < conflict.start_line {
-            result_lines.push(lines[current_line].to_string());
+            let line = lines.get(current_line).ok_or_else(|| {
+                anyhow::anyhow!(
+                    "Internal error: line index {} out of bounds (total lines: {})",
+                    current_line,
+                    lines.len()
+                )
+            })?;
+            result_lines.push(line.to_string());
             current_line += 1;
         }
 
-        // Add resolved content
-        let resolution = conflicted_file.resolutions[i]
-            .expect("All conflicts should be resolved at this point");
+        // Add resolved content with safe indexing
+        let resolution = conflicted_file.resolutions.get(i)
+            .and_then(|r| *r)
+            .ok_or_else(|| anyhow::anyhow!(
+                "Internal error: conflict {} should be resolved but wasn't",
+                i
+            ))?;
 
         let resolved_content = conflict.resolve(resolution);
         for line in resolved_content.lines() {
@@ -38,25 +49,53 @@ pub fn apply_resolutions(conflicted_file: &ConflictedFile) -> Result<()> {
         current_line = conflict.end_line + 1;
     }
 
-    // Add remaining lines after the last conflict
+    // Add remaining lines after the last conflict with safe indexing
     while current_line < lines.len() {
-        result_lines.push(lines[current_line].to_string());
+        let line = lines.get(current_line).ok_or_else(|| {
+            anyhow::anyhow!(
+                "Internal error: line index {} out of bounds (total lines: {})",
+                current_line,
+                lines.len()
+            )
+        })?;
+        result_lines.push(line.to_string());
         current_line += 1;
     }
 
-    // Join with newline and ensure file ends with newline
-    let mut final_content = result_lines.join("\n");
-    if !final_content.ends_with('\n') {
-        final_content.push('\n');
-    }
+    // Preserve original line endings and trailing newline behavior
+    let original_had_trailing_newline = content.ends_with('\n');
+    let final_content = if original_had_trailing_newline {
+        format!("{}\n", result_lines.join("\n"))
+    } else {
+        result_lines.join("\n")
+    };
 
-    // Write to file
-    fs::write(&conflicted_file.path, final_content).with_context(|| {
-        format!(
-            "Failed to write resolved content to {}",
-            conflicted_file.path.display()
-        )
-    })?;
+    // Atomic write using temp file + rename
+    let parent_dir = conflicted_file.path
+        .parent()
+        .unwrap_or_else(|| std::path::Path::new("."));
+
+    let temp_path = parent_dir.join(format!(
+        ".{}.enkai.tmp",
+        conflicted_file.path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("file")
+    ));
+
+    // Write to temp file first
+    fs::write(&temp_path, &final_content)
+        .with_context(|| format!("Failed to write to temporary file: {}", temp_path.display()))?;
+
+    // Atomic rename (on Unix systems, this is guaranteed atomic)
+    fs::rename(&temp_path, &conflicted_file.path)
+        .with_context(|| {
+            format!(
+                "Failed to rename {} to {}",
+                temp_path.display(),
+                conflicted_file.path.display()
+            )
+        })?;
 
     Ok(())
 }

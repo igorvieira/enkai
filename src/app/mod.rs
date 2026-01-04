@@ -1,3 +1,3 @@
 pub mod state;
 
-pub use state::{AppState, ViewMode};
+pub use state::{AppState, PaneFocus, ViewMode};

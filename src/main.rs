@@ -22,14 +22,41 @@ fn main() -> Result<()> {
     let git_operation = detect_git_operation(&repo)
         .context("No merge or rebase operation in progress")?;
 
-    // Find conflicted files
+    // Find conflicted files with validation
     let conflicted_paths = if args.files.is_empty() {
         find_conflicted_files(&repo).context("Failed to find conflicted files")?
     } else {
+        // Validate user-provided file paths
+        let workdir = repo
+            .workdir()
+            .context("Repository has no working directory")?;
+
         args.files
             .into_iter()
-            .map(std::path::PathBuf::from)
-            .collect()
+            .map(|file_str| {
+                let path = std::path::PathBuf::from(&file_str);
+
+                // Canonicalize to resolve symlinks and .. components
+                let canonical_path = path.canonicalize()
+                    .with_context(|| format!("File not found: {}", file_str))?;
+
+                // Ensure the file is within the repository
+                if !canonical_path.starts_with(workdir) {
+                    anyhow::bail!(
+                        "File {} is outside repository: {}",
+                        file_str,
+                        canonical_path.display()
+                    );
+                }
+
+                // Ensure it's a file, not a directory
+                if !canonical_path.is_file() {
+                    anyhow::bail!("{} is not a file", file_str);
+                }
+
+                Ok(canonical_path)
+            })
+            .collect::<Result<Vec<_>>>()?
     };
 
     // Parse conflicts from each file
