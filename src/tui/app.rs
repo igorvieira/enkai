@@ -43,7 +43,10 @@ pub fn run_app(mut state: AppState) -> Result<()> {
     result
 }
 
-fn run_loop(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, state: &mut AppState) -> Result<()> {
+fn run_loop(
+    terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
+    state: &mut AppState,
+) -> Result<()> {
     loop {
         terminal.draw(|frame| {
             let area = frame.size();

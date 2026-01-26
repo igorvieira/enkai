@@ -12,16 +12,21 @@ pub fn render_file_list(frame: &mut Frame, state: &AppState, area: Rect) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),  // Header
-            Constraint::Min(0),     // File list
-            Constraint::Length(3),  // Footer
+            Constraint::Length(3), // Header
+            Constraint::Min(0),    // File list
+            Constraint::Length(3), // Footer
         ])
         .split(area);
 
     // Header
     let header = Paragraph::new(vec![
         Line::from(vec![
-            Span::styled("Enkai", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "Murasaki",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::raw(" - Git Conflict Resolution Tool"),
         ]),
         Line::from(format!("Operation: {}", state.git_operation.as_str())),
@@ -58,7 +63,9 @@ pub fn render_file_list(frame: &mut Frame, state: &AppState, area: Rect) {
             let line = Line::from(vec![
                 Span::styled(
                     format!(" {} ", status_icon),
-                    Style::default().fg(status_color).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(status_color)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::raw(file.path_string()),
                 Span::raw("  "),

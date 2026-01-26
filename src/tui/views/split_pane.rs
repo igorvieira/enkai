@@ -8,7 +8,7 @@ use ratatui::{
 
 use crate::app::{AppState, PaneFocus};
 use crate::domain::Resolution;
-use crate::tui::colors::EnkaiColors;
+use crate::tui::colors::MurasakiColors;
 use crate::tui::syntax::{SyntaxHighlighter, CODE_BG};
 
 pub fn render_split_pane(frame: &mut Frame, state: &AppState, area: Rect) {
@@ -33,20 +33,18 @@ fn render_file_list_pane(frame: &mut Frame, state: &AppState, area: Rect) {
         let layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(1),  // Focus indicator
-                Constraint::Min(0),     // File list
+                Constraint::Length(1), // Focus indicator
+                Constraint::Min(0),    // File list
             ])
             .split(area);
 
         // Render focus indicator
-        let focus_line = Line::from(vec![
-            Span::styled(
-                "▎FILES",
-                Style::default()
-                    .fg(EnkaiColors::CYAN_BRIGHT)
-                    .add_modifier(Modifier::BOLD),
-            ),
-        ]);
+        let focus_line = Line::from(vec![Span::styled(
+            "▎FILES",
+            Style::default()
+                .fg(MurasakiColors::CYAN_BRIGHT)
+                .add_modifier(Modifier::BOLD),
+        )]);
         let focus_indicator = Paragraph::new(focus_line);
         frame.render_widget(focus_indicator, layout[0]);
 
@@ -55,18 +53,16 @@ fn render_file_list_pane(frame: &mut Frame, state: &AppState, area: Rect) {
         let layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(1),  // Empty space
-                Constraint::Min(0),     // File list
+                Constraint::Length(1), // Empty space
+                Constraint::Min(0),    // File list
             ])
             .split(area);
 
         // Render dimmed indicator
-        let focus_line = Line::from(vec![
-            Span::styled(
-                " Files",
-                Style::default().fg(EnkaiColors::TEXT_DIM),
-            ),
-        ]);
+        let focus_line = Line::from(vec![Span::styled(
+            " Files",
+            Style::default().fg(MurasakiColors::TEXT_DIM),
+        )]);
         let focus_indicator = Paragraph::new(focus_line);
         frame.render_widget(focus_indicator, layout[0]);
 
@@ -85,9 +81,9 @@ fn render_file_list_pane(frame: &mut Frame, state: &AppState, area: Rect) {
             };
 
             let status_color = if file.is_fully_resolved() {
-                EnkaiColors::STATUS_RESOLVED
+                MurasakiColors::STATUS_RESOLVED
             } else {
-                EnkaiColors::TEXT_DIM
+                MurasakiColors::TEXT_DIM
             };
 
             let is_selected = i == state.selected_file;
@@ -97,7 +93,9 @@ fn render_file_list_pane(frame: &mut Frame, state: &AppState, area: Rect) {
                 Line::from(vec![
                     Span::styled(
                         status_icon,
-                        Style::default().fg(status_color).add_modifier(Modifier::BOLD),
+                        Style::default()
+                            .fg(status_color)
+                            .add_modifier(Modifier::BOLD),
                     ),
                     Span::styled(
                         format!(" {}", file.file_name()),
@@ -107,13 +105,10 @@ fn render_file_list_pane(frame: &mut Frame, state: &AppState, area: Rect) {
             } else {
                 // Unselected item
                 Line::from(vec![
-                    Span::styled(
-                        status_icon,
-                        Style::default().fg(status_color),
-                    ),
+                    Span::styled(status_icon, Style::default().fg(status_color)),
                     Span::styled(
                         format!(" {}", file.file_name()),
-                        Style::default().fg(EnkaiColors::TEXT_DIM),
+                        Style::default().fg(MurasakiColors::TEXT_DIM),
                     ),
                 ])
             };
@@ -121,7 +116,7 @@ fn render_file_list_pane(frame: &mut Frame, state: &AppState, area: Rect) {
             let style = if is_selected {
                 use ratatui::style::Color;
                 Style::default()
-                    .bg(EnkaiColors::CYAN_BRIGHT)
+                    .bg(MurasakiColors::CYAN_BRIGHT)
                     .fg(Color::Black)
                     .add_modifier(Modifier::BOLD)
             } else {
@@ -146,7 +141,7 @@ fn render_code_pane(frame: &mut Frame, state: &AppState, area: Rect) {
         Some(f) => f,
         None => {
             let empty = Paragraph::new("No file selected")
-                .style(Style::default().fg(EnkaiColors::TEXT_DIM));
+                .style(Style::default().fg(MurasakiColors::TEXT_DIM));
             frame.render_widget(empty, area);
             return;
         }
@@ -158,9 +153,9 @@ fn render_code_pane(frame: &mut Frame, state: &AppState, area: Rect) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(2),  // Header (with focus indicator)
-            Constraint::Min(0),     // Content
-            Constraint::Length(1),  // Footer (1 line, no padding)
+            Constraint::Length(2), // Header (with focus indicator)
+            Constraint::Min(0),    // Content
+            Constraint::Length(1), // Footer (1 line, no padding)
         ])
         .split(area);
 
@@ -186,14 +181,21 @@ fn render_code_pane(frame: &mut Frame, state: &AppState, area: Rect) {
     };
 
     let header_color = if is_focused {
-        EnkaiColors::CYAN_BRIGHT
+        MurasakiColors::CYAN_BRIGHT
     } else {
-        EnkaiColors::TEXT_DIM
+        MurasakiColors::TEXT_DIM
     };
 
-    let header = Paragraph::new(Line::from(vec![
-        Span::styled(header_text, Style::default().fg(header_color).add_modifier(if is_focused { Modifier::BOLD } else { Modifier::empty() })),
-    ]));
+    let header = Paragraph::new(Line::from(vec![Span::styled(
+        header_text,
+        Style::default()
+            .fg(header_color)
+            .add_modifier(if is_focused {
+                Modifier::BOLD
+            } else {
+                Modifier::empty()
+            }),
+    )]));
 
     frame.render_widget(header, chunks[0]);
 
@@ -216,7 +218,7 @@ fn render_file_content(
 
     if conflict_index >= file.conflicts.len() {
         let content = Paragraph::new("No conflicts in this file")
-            .style(Style::default().fg(EnkaiColors::TEXT_DIM));
+            .style(Style::default().fg(MurasakiColors::TEXT_DIM));
         frame.render_widget(content, area);
         return;
     }
@@ -229,26 +231,39 @@ fn render_file_content(
 
     while line_idx < lines.len() {
         // Check if this line starts any conflict
-        let conflict_at_line = file.conflicts.iter().enumerate().find(|(_, c)| c.start_line == line_idx);
+        let conflict_at_line = file
+            .conflicts
+            .iter()
+            .enumerate()
+            .find(|(_, c)| c.start_line == line_idx);
 
         if let Some((idx, conflict)) = conflict_at_line {
             // This is a conflict
             let resolution = file.resolutions[idx];
             let is_current_conflict = idx == conflict_index;
-            let current_selected = matches!(resolution, Some(Resolution::Current) | Some(Resolution::Both));
-            let incoming_selected = matches!(resolution, Some(Resolution::Incoming) | Some(Resolution::Both));
+            let both_selected = matches!(resolution, Some(Resolution::Both));
+            let current_selected = matches!(
+                resolution,
+                Some(Resolution::Current) | Some(Resolution::Both)
+            );
+            let incoming_selected = matches!(
+                resolution,
+                Some(Resolution::Incoming) | Some(Resolution::Both)
+            );
             let is_resolved = resolution.is_some();
 
             if !is_resolved {
                 // Show conflict markers only when not resolved
                 let marker_text = if is_current_conflict {
-                    "<<<<<<< CURRENT (HEAD) ◀"  // Indicator for active conflict
+                    "<<<<<<< CURRENT (HEAD) ◀" // Indicator for active conflict
                 } else {
                     "<<<<<<< CURRENT (HEAD)"
                 };
                 display_lines.push(Line::from(Span::styled(
                     marker_text,
-                    Style::default().fg(EnkaiColors::CONFLICT_MARKER).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(MurasakiColors::CONFLICT_MARKER)
+                        .add_modifier(Modifier::BOLD),
                 )));
             }
 
@@ -263,14 +278,18 @@ fn render_file_content(
                         .into_iter()
                         .map(|(style, text)| {
                             let final_style = if is_resolved {
-                                // Resolved: subtle green background, no other styling
-                                style.bg(EnkaiColors::RESOLVED_BG)
+                                // Resolved: check if both was selected
+                                if both_selected {
+                                    style.bg(MurasakiColors::CONFLICT_BOTH_BG)
+                                } else {
+                                    style.bg(MurasakiColors::RESOLVED_BG)
+                                }
                             } else if current_selected {
-                                // Unresolved but hovering: cyan background
-                                style.bg(EnkaiColors::CONFLICT_CURRENT_BG)
+                                // Unresolved but selected: blue background
+                                style.bg(MurasakiColors::CONFLICT_CURRENT_BG)
                             } else {
-                                // Unresolved: cyan background
-                                style.bg(EnkaiColors::CONFLICT_CURRENT_BG)
+                                // Unresolved: blue background
+                                style.bg(MurasakiColors::CONFLICT_CURRENT_BG)
                             };
                             Span::styled(text, final_style)
                         })
@@ -284,7 +303,9 @@ fn render_file_content(
                 // Show separator only when not resolved
                 display_lines.push(Line::from(Span::styled(
                     "=======",
-                    Style::default().fg(EnkaiColors::CONFLICT_MARKER).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(MurasakiColors::CONFLICT_MARKER)
+                        .add_modifier(Modifier::BOLD),
                 )));
             }
 
@@ -299,14 +320,18 @@ fn render_file_content(
                         .into_iter()
                         .map(|(style, text)| {
                             let final_style = if is_resolved {
-                                // Resolved: subtle green background, no other styling
-                                style.bg(EnkaiColors::RESOLVED_BG)
+                                // Resolved: check if both was selected
+                                if both_selected {
+                                    style.bg(MurasakiColors::CONFLICT_BOTH_BG)
+                                } else {
+                                    style.bg(MurasakiColors::RESOLVED_BG)
+                                }
                             } else if incoming_selected {
-                                // Unresolved but hovering: orange background
-                                style.bg(EnkaiColors::CONFLICT_INCOMING_BG)
+                                // Unresolved but selected: red background
+                                style.bg(MurasakiColors::CONFLICT_INCOMING_BG)
                             } else {
-                                // Unresolved: orange background
-                                style.bg(EnkaiColors::CONFLICT_INCOMING_BG)
+                                // Unresolved: red background
+                                style.bg(MurasakiColors::CONFLICT_INCOMING_BG)
                             };
                             Span::styled(text, final_style)
                         })
@@ -319,13 +344,15 @@ fn render_file_content(
             if !is_resolved {
                 // Show conflict end marker only when not resolved
                 let marker_text = if is_current_conflict {
-                    ">>>>>>> INCOMING ◀"  // Indicator for active conflict
+                    ">>>>>>> INCOMING ◀" // Indicator for active conflict
                 } else {
                     ">>>>>>> INCOMING"
                 };
                 display_lines.push(Line::from(Span::styled(
                     marker_text,
-                    Style::default().fg(EnkaiColors::CONFLICT_MARKER).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(MurasakiColors::CONFLICT_MARKER)
+                        .add_modifier(Modifier::BOLD),
                 )));
             }
 
@@ -361,16 +388,15 @@ fn render_footer(
     let _can_save = file.is_fully_resolved();
 
     // Fill the entire footer area with background color first
-    let background = Paragraph::new("")
-        .style(Style::default().bg(EnkaiColors::FOOTER_BG));
+    let background = Paragraph::new("").style(Style::default().bg(MurasakiColors::FOOTER_BG));
     frame.render_widget(background, area);
 
     // Create horizontal layout with minimal left padding (no top/bottom padding)
     let horizontal_chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
-            Constraint::Length(2),  // Minimal left padding
-            Constraint::Min(0),     // Content area
+            Constraint::Length(2), // Minimal left padding
+            Constraint::Min(0),    // Content area
         ])
         .split(area);
 
@@ -379,9 +405,15 @@ fn render_footer(
     let keybindings = if state.focus == PaneFocus::CodeView {
         Line::from(vec![
             Span::styled("keys: ", Style::default().fg(white)),
-            Span::styled("j/k", Style::default().fg(white).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "j/k",
+                Style::default().fg(white).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("=scroll ", Style::default().fg(white)),
-            Span::styled("n/p", Style::default().fg(white).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "n/p",
+                Style::default().fg(white).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("=conflicts ", Style::default().fg(white)),
             Span::styled("c", Style::default().fg(white).add_modifier(Modifier::BOLD)),
             Span::styled("=current ", Style::default().fg(white)),
@@ -399,9 +431,15 @@ fn render_footer(
     } else {
         Line::from(vec![
             Span::styled("keys: ", Style::default().fg(white)),
-            Span::styled("j/k", Style::default().fg(white).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "j/k",
+                Style::default().fg(white).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("=navigate ", Style::default().fg(white)),
-            Span::styled("tab", Style::default().fg(white).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "tab",
+                Style::default().fg(white).add_modifier(Modifier::BOLD),
+            ),
             Span::styled("=code ", Style::default().fg(white)),
             Span::styled("q", Style::default().fg(white).add_modifier(Modifier::BOLD)),
             Span::styled("=quit", Style::default().fg(white)),
@@ -409,8 +447,7 @@ fn render_footer(
     };
 
     // Footer content with left alignment, single line
-    let footer = Paragraph::new(keybindings)
-        .alignment(Alignment::Left);
+    let footer = Paragraph::new(keybindings).alignment(Alignment::Left);
 
     frame.render_widget(footer, horizontal_chunks[1]);
 }

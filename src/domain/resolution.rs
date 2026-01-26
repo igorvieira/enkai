@@ -19,3 +19,35 @@ impl Resolution {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_resolution_display_strings() {
+        assert_eq!(Resolution::Current.as_str(), "Current (HEAD)");
+        assert_eq!(Resolution::Incoming.as_str(), "Incoming");
+        assert_eq!(Resolution::Both.as_str(), "Both");
+    }
+
+    #[test]
+    fn test_resolution_equality() {
+        assert_eq!(Resolution::Current, Resolution::Current);
+        assert_eq!(Resolution::Incoming, Resolution::Incoming);
+        assert_eq!(Resolution::Both, Resolution::Both);
+        assert_ne!(Resolution::Current, Resolution::Incoming);
+        assert_ne!(Resolution::Current, Resolution::Both);
+        assert_ne!(Resolution::Incoming, Resolution::Both);
+    }
+
+    #[test]
+    fn test_resolution_copy_clone() {
+        let r1 = Resolution::Current;
+        let r2 = r1; // Copy trait
+        assert_eq!(r1, r2);
+
+        let r3 = r1; // Copy trait (clone not needed)
+        assert_eq!(r1, r3);
+    }
+}

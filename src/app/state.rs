@@ -61,28 +61,28 @@ impl AppState {
 
     /// Move selection up in file list
     pub fn move_selection_up(&mut self) {
-        if self.focus == PaneFocus::FileList
-            && self.selected_file > 0 {
-                self.selected_file -= 1;
-                // Reset conflict index and scroll when changing files
-                if let ViewMode::SplitPane { conflict_index } = &mut self.view_mode {
-                    *conflict_index = 0;
-                }
-                self.reset_scroll();
+        if self.focus == PaneFocus::FileList && self.selected_file > 0 {
+            self.selected_file -= 1;
+            // Reset conflict index and scroll when changing files
+            if let ViewMode::SplitPane { conflict_index } = &mut self.view_mode {
+                *conflict_index = 0;
             }
+            self.reset_scroll();
+        }
     }
 
     /// Move selection down in file list
     pub fn move_selection_down(&mut self) {
         if self.focus == PaneFocus::FileList
-            && self.selected_file < self.files.len().saturating_sub(1) {
-                self.selected_file += 1;
-                // Reset conflict index and scroll when changing files
-                if let ViewMode::SplitPane { conflict_index } = &mut self.view_mode {
-                    *conflict_index = 0;
-                }
-                self.reset_scroll();
+            && self.selected_file < self.files.len().saturating_sub(1)
+        {
+            self.selected_file += 1;
+            // Reset conflict index and scroll when changing files
+            if let ViewMode::SplitPane { conflict_index } = &mut self.view_mode {
+                *conflict_index = 0;
             }
+            self.reset_scroll();
+        }
     }
 
     /// Move to the next conflict in the current file

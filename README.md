@@ -1,79 +1,115 @@
-# Enkai
+# Murasaki
 
-Uma ferramenta TUI para resolver conflitos git durante merge ou rebase.
+[![CI](https://github.com/igorvieira/murasaki_rs/workflows/CI/badge.svg)](https://github.com/igorvieira/murasaki_rs/actions/workflows/ci.yml)
+[![Codecov](https://codecov.io/gh/igorvieira/murasaki_rs/branch/main/graph/badge.svg)](https://codecov.io/gh/igorvieira/murasaki_rs)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Rust Version](https://img.shields.io/badge/rust-stable-brightgreen.svg)](https://www.rust-lang.org)
 
-## Instalação
+A TUI tool for resolving git conflicts during merge or rebase operations.
+
+## Installation
 
 ```bash
 cargo install --path .
 ```
 
-## Uso
+## Usage
 
-Quando tiver conflitos git:
+When you have git conflicts:
 
 ```bash
-enkai
+saki
 ```
 
-## Comandos
+## Commands
 
-### Lista de Arquivos
-- `j/k` ou `↑/↓` - Navegar
-- `Tab` - Alternar para visualização de código
-- `q` - Sair
+### File List
+- `j/k` or `↑/↓` - Navigate
+- `Tab` - Switch to code view
+- `q` - Quit
 
-### Visualização de Código
-- `j/k` ou `↑/↓` - **Scroll** linha por linha
-- `Ctrl+d/Ctrl+u` - **Scroll** meia página (rápido)
-- `n/p` - Próximo/anterior **conflito**
-- `c` - Aceitar **Current** (HEAD) para o conflito atual
-- `i` - Aceitar **Incoming** para o conflito atual
-- `b` - Aceitar **Both** para o conflito atual
-- `u` - **Desfazer** resolução do conflito atual
-- `s` - **Salvar** arquivo (após resolver todos os conflitos)
-- `Tab` - Voltar para lista de arquivos
-- `q` - Sair
+### Code View
+- `j/k` or `↑/↓` - Scroll line by line
+- `Ctrl+d/Ctrl+u` - Scroll half page (fast)
+- `n/p` - Next/previous conflict
+- `c` - Accept Current (HEAD) for current conflict
+- `i` - Accept Incoming for current conflict
+- `b` - Accept Both for current conflict
+- `u` - Undo resolution of current conflict
+- `s` - Save file (after resolving all conflicts)
+- `Tab` - Go back to file list
+- `q` - Quit
 
-### Após Resolver (Rebase)
-- `c` - Continuar rebase
-- `a` - Abortar rebase
-- `s` - Pular commit
+### After Resolving (Rebase)
+- `c` - Continue rebase
+- `a` - Abort rebase
+- `s` - Skip commit
 
-## Como Funciona
+## How It Works
 
-1. Detecta conflitos git no repositório
-2. Mostra lista de arquivos com conflitos
-3. Use `Tab` para ir para a visualização de código
-4. Use `j/k` para fazer scroll e ver todo o arquivo
-5. Use `n/p` para navegar entre conflitos
-6. Para cada conflito, escolha: `c` (Current), `i` (Incoming) ou `b` (Both)
-7. Quando todos os conflitos estiverem resolvidos, pressione `s` para salvar
-8. Vá para o próximo arquivo ou, se for rebase, escolha continuar/abortar/pular
+1. Detects git conflicts in the repository
+2. Shows list of files with conflicts
+3. Use `Tab` to go to code view
+4. Use `j/k` to scroll and see the entire file
+5. Use `n/p` to navigate between conflicts
+6. For each conflict, choose: `c` (Current), `i` (Incoming), or `b` (Both)
+7. When all conflicts are resolved, press `s` to save
+8. Go to the next file or, if it's a rebase, choose continue/abort/skip
 
-## Estrutura
+## Features
+
+- Split-pane interface with file list and code view
+- Syntax highlighting for conflict regions
+- Visual indicators for resolved/unresolved conflicts
+- Color-coded conflict backgrounds:
+  - Current (HEAD): Blue background
+  - Incoming: Red background
+  - Both: Purple background
+- Atomic file writes to prevent data corruption
+- Terminal cleanup on panic for safety
+- Input validation to prevent path traversal
+
+## Structure
 
 ```
 src/
-├── domain/     # Modelos de dados
-├── app/        # Estado da aplicação
-├── git/        # Integração com git
-└── tui/        # Interface do usuário
+├── domain/     # Data models
+├── app/        # Application state
+├── git/        # Git integration
+└── tui/        # User interface
 ```
 
-## Desenvolvimento
+## Development
 
 ```bash
 # Build
 cargo build --release
 
-# Testes
+# Tests
 cargo test
 
 # Lint
 cargo clippy
 ```
 
-## Licença
+## Documentation
+
+- [CHANGELOG.md](CHANGELOG.md) - Version history and release notes
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Architecture and design decisions
+- [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) - Contributing guidelines
+- [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) - Implementation details and fixes
+- [docs/TESTING.md](docs/TESTING.md) - Testing guide and coverage
+
+## Version
+
+Current version: 0.1.1
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
+
+## License
 
 MIT
+
+## Contributing
+
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on how to contribute to this project.

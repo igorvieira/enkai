@@ -1,12 +1,12 @@
 #!/bin/bash
 set -e
 
-# Enkai installation script
-# Usage: curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/enkai/main/install.sh | sh
+# Murasaki installation script
+# Usage: curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/murasaki_rs/main/install.sh | sh
 
-REPO="YOUR_USERNAME/enkai"
+REPO="YOUR_USERNAME/murasaki_rs"
 INSTALL_DIR="${HOME}/.local/bin"
-BINARY_NAME="enkai"
+BINARY_NAME="saki"
 
 # Detect OS and architecture
 OS="$(uname -s)"
@@ -39,10 +39,10 @@ case "${ARCH}" in
 esac
 
 # Construct download URL for the release binary
-# This assumes you'll create releases with binaries named like: enkai-linux-x86_64, enkai-macos-aarch64, etc.
-DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/enkai-${OS_TYPE}-${ARCH_TYPE}"
+# This assumes you'll create releases with binaries named like: saki-linux-x86_64, saki-macos-aarch64, etc.
+DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/saki-${OS_TYPE}-${ARCH_TYPE}"
 
-echo "Installing Enkai..."
+echo "Installing Murasaki..."
 echo "OS: ${OS_TYPE}"
 echo "Architecture: ${ARCH_TYPE}"
 
@@ -64,7 +64,7 @@ fi
 chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
 
 echo ""
-echo "✓ Enkai has been installed to ${INSTALL_DIR}/${BINARY_NAME}"
+echo "✓ Murasaki has been installed to ${INSTALL_DIR}/${BINARY_NAME}"
 echo ""
 
 # Check if install directory is in PATH
@@ -72,7 +72,7 @@ case ":${PATH}:" in
     *":${INSTALL_DIR}:"*)
         echo "✓ ${INSTALL_DIR} is already in your PATH"
         echo ""
-        echo "You can now use enkai by running: enkai"
+        echo "You can now use saki by running: murasaki_rs"
         ;;
     *)
         echo "⚠ ${INSTALL_DIR} is not in your PATH"
@@ -87,4 +87,4 @@ case ":${PATH}:" in
 esac
 
 echo ""
-echo "Get started with: enkai --help"
+echo "Get started with: murasaki_rs --help"

@@ -61,8 +61,7 @@ pub fn find_conflicted_files(repo: &Repository) -> Result<Vec<PathBuf>> {
 
 /// Open the git repository in the current directory or parent directories
 pub fn open_repository() -> Result<Repository> {
-    Repository::discover(".")
-        .context("Not a git repository (or any of the parent directories)")
+    Repository::discover(".").context("Not a git repository (or any of the parent directories)")
 }
 
 #[cfg(test)]

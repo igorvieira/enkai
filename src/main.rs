@@ -1,9 +1,11 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use enkai::{detect_git_operation, find_conflicted_files, parse_conflicts, run_app, AppState};
+use murasaki_rs::{
+    detect_git_operation, find_conflicted_files, parse_conflicts, run_app, AppState,
+};
 
 #[derive(Parser, Debug)]
-#[command(name = "enkai")]
+#[command(name = "saki")]
 #[command(about = "A TUI tool for handling git conflicts during merge or rebase", long_about = None)]
 struct Args {
     /// Specific files to resolve (if not provided, all conflicted files will be shown)
@@ -15,12 +17,12 @@ fn main() -> Result<()> {
     let args = Args::parse();
 
     // Open git repository
-    let repo = enkai::git::detector::open_repository()
-        .context("Failed to open git repository")?;
+    let repo =
+        murasaki_rs::git::detector::open_repository().context("Failed to open git repository")?;
 
     // Detect the type of operation
-    let git_operation = detect_git_operation(&repo)
-        .context("No merge or rebase operation in progress")?;
+    let git_operation =
+        detect_git_operation(&repo).context("No merge or rebase operation in progress")?;
 
     // Find conflicted files with validation
     let conflicted_paths = if args.files.is_empty() {
@@ -37,7 +39,8 @@ fn main() -> Result<()> {
                 let path = std::path::PathBuf::from(&file_str);
 
                 // Canonicalize to resolve symlinks and .. components
-                let canonical_path = path.canonicalize()
+                let canonical_path = path
+                    .canonicalize()
                     .with_context(|| format!("File not found: {}", file_str))?;
 
                 // Ensure the file is within the repository

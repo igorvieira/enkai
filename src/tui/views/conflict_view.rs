@@ -13,9 +13,9 @@ pub fn render_conflict_view(frame: &mut Frame, state: &AppState, area: Rect) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),  // Header
-            Constraint::Min(0),     // Content
-            Constraint::Length(5),  // Footer
+            Constraint::Length(3), // Header
+            Constraint::Min(0),    // Content
+            Constraint::Length(5), // Footer
         ])
         .split(area);
 
@@ -138,11 +138,26 @@ pub fn render_conflict_view(frame: &mut Frame, state: &AppState, area: Rect) {
     let footer = Paragraph::new(vec![
         Line::from(vec![
             Span::raw("Keys: "),
-            Span::styled("c", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "c",
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::raw("=Current | "),
-            Span::styled("i", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "i",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::raw("=Incoming | "),
-            Span::styled("b", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "b",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::raw(both_text),
         ]),
         Line::from(vec![
@@ -160,7 +175,9 @@ pub fn render_conflict_view(frame: &mut Frame, state: &AppState, area: Rect) {
         Line::from(if can_save {
             Span::styled(
                 "All conflicts resolved! Press 's' to save.",
-                Style::default().fg(Color::Green).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
             )
         } else {
             Span::raw("")

@@ -1,10 +1,14 @@
 [package]
-name = "enkai"
+name = "murasaki_rs"
 version = "0.1.0"
 edition = "2021"
 authors = ["Igor Vieira"]
 description = "A TUI tool for handling git conflicts during merge or rebase"
 license = "MIT"
+
+[[bin]]
+name = "saki"
+path = "src/main.rs"
 
 [dependencies]
 ratatui = "0.26"

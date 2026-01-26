@@ -1,8 +1,8 @@
-# Enkai Architecture
+# Murasaki Architecture
 
 ## Overview
 
-Enkai is a TUI (Terminal User Interface) application for resolving git conflicts during merge or rebase operations. The architecture follows a layered design with clear separation of concerns.
+Murasaki is a TUI (Terminal User Interface) application for resolving git conflicts during merge or rebase operations. The architecture follows a layered design with clear separation of concerns.
 
 ## Architecture Layers
 

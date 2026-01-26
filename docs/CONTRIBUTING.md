@@ -1,6 +1,6 @@
-# Contributing to Enkai
+# Contributing to Murasaki
 
-First off, thank you for considering contributing to Enkai! 🎉
+First off, thank you for considering contributing to Murasaki!
 
 ## Code of Conduct
 
@@ -62,8 +62,8 @@ We welcome feature suggestions! Please:
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/enkai.git
-cd enkai
+git clone https://github.com/YOUR_USERNAME/murasaki_rs.git
+cd murasaki_rs
 
 # Build the project
 cargo build
@@ -77,7 +77,7 @@ cargo run
 
 ### Testing Your Changes
 
-To test enkai with real git conflicts:
+To test saki with real git conflicts:
 
 ```bash
 # Create a test repository
@@ -102,7 +102,7 @@ git commit -am "Main change"
 # Create a conflict
 git merge feature
 
-# Now run enkai
+# Now run saki
 cargo run --manifest-path ../Cargo.toml
 ```
 
@@ -169,7 +169,7 @@ Create files in `tests/` directory:
 
 ```rust
 // tests/conflict_resolution.rs
-use enkai::*;
+use murasaki_rs::*;
 
 #[test]
 fn test_end_to_end_resolution() {
@@ -194,4 +194,4 @@ Feel free to:
 
 Contributors will be recognized in the README and release notes.
 
-Thank you for contributing! 🚀
+Thank you for contributing!

@@ -1,17 +1,22 @@
-# Enkai - Critical Fixes Applied
+# Implementation Details
 
-**Date:** January 1, 2026
-**Version:** 0.1.0 → 0.1.1 (post-fixes)
+This document tracks implementation details, fixes, and technical decisions made during the development of Murasaki.
 
-## Summary
-
-All **CRITICAL** and **HIGH** priority issues identified in the code review have been fixed. The codebase is now significantly more robust and safer for production use.
+## Table of Contents
+- [Critical Fixes Applied](#critical-fixes-applied)
+- [Code Review Summary](#code-review-summary)
+- [Migration Notes](#migration-notes)
+- [Quality Metrics](#quality-metrics)
 
 ---
 
-## ✅ Fixes Applied
+## Critical Fixes Applied
 
-### 1. Fixed Unsafe Array Indexing in parser.rs
+### Version 0.1.1 - January 1, 2026
+
+All **CRITICAL** and **HIGH** priority issues identified in the code review have been fixed. The codebase is now significantly more robust and safer for production use.
+
+#### 1. Fixed Unsafe Array Indexing in parser.rs
 
 **Issue:** Multiple direct array accesses without bounds checking
 **Severity:** HIGH (Could cause panics)
@@ -54,7 +59,7 @@ let current_lines = lines
 
 ---
 
-### 2. Fixed Unsafe Array Indexing in applier.rs
+#### 2. Fixed Unsafe Array Indexing in applier.rs
 
 **Issue:** Direct array indexing in resolution application
 **Severity:** HIGH (Could cause panics)
@@ -96,7 +101,7 @@ let resolution = conflicted_file.resolutions.get(i)
 
 ---
 
-### 3. Implemented Atomic File Writes
+#### 3. Implemented Atomic File Writes
 
 **Issue:** Non-atomic writes could corrupt files if interrupted
 **Severity:** CRITICAL (Data loss risk)
@@ -128,7 +133,7 @@ let final_content = if original_had_trailing_newline {
 
 // Atomic write using temp file + rename
 let temp_path = parent_dir.join(format!(
-    ".{}.enkai.tmp",
+    ".{}.murasaki_rs.tmp",
     conflicted_file.path
         .file_name()
         .and_then(|n| n.to_str())
@@ -140,13 +145,13 @@ fs::rename(&temp_path, &conflicted_file.path)?;
 ```
 
 **Impact:**
-- ✅ Files cannot be corrupted if process crashes mid-write
-- ✅ Original trailing newline behavior preserved
-- ✅ Atomic rename operation (guaranteed on Unix)
+- Files cannot be corrupted if process crashes mid-write
+- Original trailing newline behavior preserved
+- Atomic rename operation (guaranteed on Unix)
 
 ---
 
-### 4. Added Panic Guard for Terminal Cleanup
+#### 4. Added Panic Guard for Terminal Cleanup
 
 **Issue:** Terminal left in broken state if app panics
 **Severity:** HIGH (Poor UX, broken terminal)
@@ -198,7 +203,7 @@ pub fn run_app(mut state: AppState) -> Result<()> {
 
 ---
 
-### 5. Added Input Validation for File Paths
+#### 5. Added Input Validation for File Paths
 
 **Issue:** User-provided paths not validated
 **Severity:** MEDIUM (Security/safety)
@@ -257,14 +262,14 @@ let conflicted_paths = if args.files.is_empty() {
 ```
 
 **Impact:**
-- ✅ Prevents path traversal attacks (`../../etc/passwd`)
-- ✅ Validates files exist before processing
-- ✅ Ensures files are within repository
-- ✅ Rejects directories and symlinks to sensitive locations
+- Prevents path traversal attacks (`../../etc/passwd`)
+- Validates files exist before processing
+- Ensures files are within repository
+- Rejects directories and symlinks to sensitive locations
 
 ---
 
-### 6. Fixed Clippy Warnings
+#### 6. Fixed Clippy Warnings
 
 **Issue:** Collapsible if statements in state.rs
 **Severity:** LOW (Code quality)
@@ -278,9 +283,116 @@ Auto-fixed with `cargo clippy --fix`.
 
 ---
 
-## 🧪 Testing
+## Code Review Summary
+
+### Overall Assessment
+
+Murasaki has been comprehensively reviewed focusing on architecture, backend quality, and QA. The codebase shows **strong fundamentals** with clean architecture and good Rust practices.
+
+#### Overall Scores
+
+| Category | Score | Status |
+|----------|-------|--------|
+| **Architecture** | 8.5/10 | Good |
+| **Code Quality** | 8.0/10 | Good |
+| **Backend Safety** | 7.5/10 | Needs Work |
+| **Test Coverage** | 6.0/10 | Critical Gap |
+| **Security** | 8.0/10 | Good |
+
+### Architecture Strengths
+
+1. **Excellent Layer Separation**
+   ```
+   domain/ (pure business logic)
+   app/ (state management)
+   git/ (infrastructure)
+   tui/ (presentation)
+   ```
+
+2. **Strong Type Safety**
+   - Exhaustive pattern matching
+   - Good use of Option types
+   - Newtype pattern for Resolution/GitOperation
+
+3. **Good Error Handling**
+   - Consistent use of `anyhow::Result`
+   - Context-aware error messages
+
+4. **Clean Dependencies**
+   - Only 6 production dependencies
+   - All well-maintained crates
+   - No dependency bloat
+
+### Identified Issues
+
+#### Critical Issues (Fixed in v0.1.1)
+- Unsafe array indexing (7 locations)
+- Data corruption risk from non-atomic writes
+- Terminal resource leak on panic
+- Missing input validation
+
+#### Remaining Issues
+1. **Test Coverage** - Currently ~13%, target 80%+
+2. **Scrolling Support** - TODO in split_pane.rs:335
+3. **Performance** - O(n²) conflict parsing, no caching
+4. **Abstractions** - No GitRepository trait for testability
+
+---
+
+## Migration Notes
+
+### Version 0.1.1
+
+#### No Breaking Changes
+All fixes are backward compatible. No API changes.
+
+#### File Format
+Files now preserve trailing newline behavior (previously always added one).
+
+#### Error Messages
+Error messages are now more descriptive with better context.
+
+#### Temporary Files
+Application now creates `.{filename}.murasaki_rs.tmp` files during save (automatically cleaned up).
+
+### Unreleased (Current)
+
+#### Binary Rename
+- Command changed from `murasaki_rs` to `saki`
+- Update scripts and CI/CD to use new binary name
+
+#### Color Scheme Changes
+- Current conflict: Dark cyan → Dark blue
+- Incoming conflict: Dark orange → Dark red
+- Both selected: New dark purple background
+
+---
+
+## Quality Metrics
+
+### Version 0.1.1 Impact
+
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| **Panic Risks** | 7 locations | 0 | 100% eliminated |
+| **Data Corruption Risks** | 1 critical | 0 | 100% eliminated |
+| **Resource Leaks** | 1 (terminal) | 0 | 100% eliminated |
+| **Input Validation** | None | Full | Complete |
+| **Clippy Warnings** | 2 | 0 | 100% fixed |
+
+### Code Quality Metrics
+
+| Metric | Before v0.1.1 | After v0.1.1 |
+|--------|---------------|--------------|
+| **Unsafe Operations** | 7 | 0 |
+| **`.expect()` Calls** | 1 | 0 |
+| **Direct Array Indexing** | 6 | 0 |
+| **Atomic Operations** | 0% | 100% |
+| **Input Validation** | 0% | 100% |
+| **Panic Safety** | Low | High |
 
 ### Test Results
+
 All existing tests pass:
 ```
 running 5 tests
@@ -294,104 +406,49 @@ test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
 ### Build Status
-✅ Builds successfully with no warnings:
-```
-Finished `release` profile [optimized] target(s) in 2.48s
-```
-
-### Clippy Status
-✅ No clippy warnings after fixes applied.
+- Builds successfully with no warnings
+- Clean clippy output
+- Release build optimized
 
 ---
 
-## 📊 Impact Summary
+## Production Readiness
 
-| Category | Before | After | Improvement |
-|----------|--------|-------|-------------|
-| **Panic Risks** | 7 locations | 0 | ✅ 100% eliminated |
-| **Data Corruption Risks** | 1 critical | 0 | ✅ 100% eliminated |
-| **Resource Leaks** | 1 (terminal) | 0 | ✅ 100% eliminated |
-| **Input Validation** | None | Full | ✅ Complete |
-| **Clippy Warnings** | 2 | 0 | ✅ 100% fixed |
+### Before v0.1.1:
+- Not production ready (critical bugs)
+- Data loss risk
+- Crash-prone
+- Poor error handling
+
+### After v0.1.1:
+- Much safer for production use
+- No data corruption risk
+- Robust error handling
+- Input validation
+- Note: Needs scrolling support for real-world use
+- Note: Needs more test coverage
 
 ---
 
-## 🚀 What's Next
+## Future Work
 
-### Remaining from Review
+See [ARCHITECTURE.md](ARCHITECTURE.md) for planned enhancements:
 
-**Priority 2 - Medium (Not Yet Implemented):**
-- Scrolling support for large files (TODO at split_pane.rs:335)
-- Comprehensive test coverage (currently 13%, target 80%)
-- Repository abstraction pattern for better testability
+### Priority 1 - Critical
+- Scrolling support for large files
+- Comprehensive test coverage (target 80%)
 
-**Priority 3 - Low:**
-- Performance optimizations (O(n²) algorithms)
+### Priority 2 - High
+- Repository abstraction pattern for testability
+- Performance optimizations
 - Syntax highlighting caching
-- Large file streaming support
+
+### Priority 3 - Medium
+- Custom merge strategies
+- Three-way merge view
+- Configuration file support
+- Undo/redo history
 
 ---
 
-## 🎯 Production Readiness
-
-### Before Fixes:
-- ❌ Not production ready (critical bugs)
-- ❌ Data loss risk
-- ❌ Crash-prone
-- ❌ Poor error handling
-
-### After Fixes:
-- ✅ Much safer for production use
-- ✅ No data corruption risk
-- ✅ Robust error handling
-- ✅ Input validation
-- ⚠️ Needs scrolling support for real-world use
-- ⚠️ Needs more test coverage
-
----
-
-## 📝 Migration Notes
-
-### No Breaking Changes
-All fixes are backward compatible. No API changes.
-
-### File Format
-Files now preserve trailing newline behavior (previously always added one).
-
-### Error Messages
-Error messages are now more descriptive with better context.
-
-### Temporary Files
-Application now creates `.{filename}.enkai.tmp` files during save (automatically cleaned up).
-
----
-
-## 🔍 Code Quality Metrics
-
-| Metric | Before | After |
-|--------|--------|-------|
-| **Unsafe Operations** | 7 | 0 |
-| **`.expect()` Calls** | 1 | 0 |
-| **Direct Array Indexing** | 6 | 0 |
-| **Atomic Operations** | 0% | 100% |
-| **Input Validation** | 0% | 100% |
-| **Panic Safety** | Low | High |
-
----
-
-## 🙏 Acknowledgments
-
-Fixes implemented based on comprehensive code review by:
-- **Architect Agent** - Architecture and design analysis
-- **Backend Agent** - Safety and robustness audit
-- **QA Agent** - Bug detection and testing review
-
-All review prompts available in: `/Users/igorvieira/Projects/Personal/.claude/prompts/`
-
----
-
-**Status:** ✅ All CRITICAL and HIGH priority issues FIXED
-**Build:** ✅ PASSING
-**Tests:** ✅ PASSING (5/5)
-**Clippy:** ✅ CLEAN
-**Ready for:** Beta testing with scrolling limitation noted
+Last updated: January 25, 2026

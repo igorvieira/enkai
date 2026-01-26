@@ -74,21 +74,23 @@ pub fn parse_conflicts(file_path: &Path) -> Result<ConflictedFile> {
             // Extract current and incoming content with safe slicing
             let current_lines = lines
                 .get((conflict_start_line + 1)..separator_line)
-                .ok_or_else(|| anyhow::anyhow!(
-                    "Invalid conflict range in {}: lines {}-{}",
-                    file_path.display(),
-                    conflict_start_line + 1,
-                    separator_line
-                ))?;
+                .ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "Invalid conflict range in {}: lines {}-{}",
+                        file_path.display(),
+                        conflict_start_line + 1,
+                        separator_line
+                    )
+                })?;
 
-            let incoming_lines = lines
-                .get((separator_line + 1)..end_line)
-                .ok_or_else(|| anyhow::anyhow!(
+            let incoming_lines = lines.get((separator_line + 1)..end_line).ok_or_else(|| {
+                anyhow::anyhow!(
                     "Invalid conflict range in {}: lines {}-{}",
                     file_path.display(),
                     separator_line + 1,
                     end_line
-                ))?;
+                )
+            })?;
 
             let current = current_lines.join("\n");
             let incoming = incoming_lines.join("\n");

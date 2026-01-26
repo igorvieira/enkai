@@ -33,12 +33,16 @@ pub fn apply_resolutions(conflicted_file: &ConflictedFile) -> Result<()> {
         }
 
         // Add resolved content with safe indexing
-        let resolution = conflicted_file.resolutions.get(i)
+        let resolution = conflicted_file
+            .resolutions
+            .get(i)
             .and_then(|r| *r)
-            .ok_or_else(|| anyhow::anyhow!(
-                "Internal error: conflict {} should be resolved but wasn't",
-                i
-            ))?;
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "Internal error: conflict {} should be resolved but wasn't",
+                    i
+                )
+            })?;
 
         let resolved_content = conflict.resolve(resolution);
         for line in resolved_content.lines() {
@@ -71,13 +75,15 @@ pub fn apply_resolutions(conflicted_file: &ConflictedFile) -> Result<()> {
     };
 
     // Atomic write using temp file + rename
-    let parent_dir = conflicted_file.path
+    let parent_dir = conflicted_file
+        .path
         .parent()
         .unwrap_or_else(|| std::path::Path::new("."));
 
     let temp_path = parent_dir.join(format!(
-        ".{}.enkai.tmp",
-        conflicted_file.path
+        ".{}.murasaki_rs.tmp",
+        conflicted_file
+            .path
             .file_name()
             .and_then(|n| n.to_str())
             .unwrap_or("file")
@@ -88,14 +94,13 @@ pub fn apply_resolutions(conflicted_file: &ConflictedFile) -> Result<()> {
         .with_context(|| format!("Failed to write to temporary file: {}", temp_path.display()))?;
 
     // Atomic rename (on Unix systems, this is guaranteed atomic)
-    fs::rename(&temp_path, &conflicted_file.path)
-        .with_context(|| {
-            format!(
-                "Failed to rename {} to {}",
-                temp_path.display(),
-                conflicted_file.path.display()
-            )
-        })?;
+    fs::rename(&temp_path, &conflicted_file.path).with_context(|| {
+        format!(
+            "Failed to rename {} to {}",
+            temp_path.display(),
+            conflicted_file.path.display()
+        )
+    })?;
 
     Ok(())
 }

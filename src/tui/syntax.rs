@@ -29,10 +29,9 @@ impl SyntaxHighlighter {
 
         // Keywords for common languages
         let keywords = [
-            "function", "const", "let", "var", "return", "if", "else", "for", "while",
-            "fn", "pub", "impl", "struct", "enum", "trait", "use", "mod",
-            "def", "class", "import", "from", "async", "await",
-            "int", "string", "bool", "void", "char", "float", "double",
+            "function", "const", "let", "var", "return", "if", "else", "for", "while", "fn", "pub",
+            "impl", "struct", "enum", "trait", "use", "mod", "def", "class", "import", "from",
+            "async", "await", "int", "string", "bool", "void", "char", "float", "double",
         ];
 
         let mut current_pos = 0;
@@ -77,7 +76,9 @@ impl SyntaxHighlighter {
             // Check for numbers
             if remaining[0].is_ascii_digit() {
                 let mut end_pos = 0;
-                while end_pos < remaining.len() && (remaining[end_pos].is_ascii_digit() || remaining[end_pos] == '.') {
+                while end_pos < remaining.len()
+                    && (remaining[end_pos].is_ascii_digit() || remaining[end_pos] == '.')
+                {
                     end_pos += 1;
                 }
                 let number: String = remaining[..end_pos].iter().collect();
@@ -92,7 +93,9 @@ impl SyntaxHighlighter {
             // Check for keywords/identifiers
             if remaining[0].is_alphabetic() || remaining[0] == '_' {
                 let mut end_pos = 0;
-                while end_pos < remaining.len() && (remaining[end_pos].is_alphanumeric() || remaining[end_pos] == '_') {
+                while end_pos < remaining.len()
+                    && (remaining[end_pos].is_alphanumeric() || remaining[end_pos] == '_')
+                {
                     end_pos += 1;
                 }
                 let word: String = remaining[..end_pos].iter().collect();

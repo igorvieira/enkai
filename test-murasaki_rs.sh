@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Script para testar o Enkai com conflitos git reais
-# Usage: ./test-enkai.sh
+# Script para testar o Murasaki com conflitos git reais
+# Usage: ./test-murasaki_rs.sh
 
-echo "🧪 Creating test repository with conflicts..."
+echo "Creating test repository with conflicts..."
 
 # Create test directory
-TEST_DIR="/tmp/enkai-test-repo"
+TEST_DIR="/tmp/murasaki_rs-test-repo"
 rm -rf "$TEST_DIR"
 mkdir -p "$TEST_DIR"
 cd "$TEST_DIR"
@@ -93,15 +93,15 @@ git commit -m "Add Rust file"
 
 # Try to merge (this will create conflicts)
 echo ""
-echo "📝 Creating conflicts..."
+echo "Creating conflicts..."
 git merge feature-branch || true
 
 echo ""
-echo "✅ Test repository created at: $TEST_DIR"
+echo "Test repository created at: $TEST_DIR"
 echo ""
-echo "🚀 Now run Enkai to resolve conflicts:"
+echo "Now run Murasaki to resolve conflicts:"
 echo "   cd $TEST_DIR"
-echo "   /Users/igorvieira/Projects/Personal/enkai/target/release/enkai"
+echo "   /Users/igorvieira/Projects/Personal/murasaki_rs/target/release/saki"
 echo ""
 echo "You should see:"
 echo "  - ▎FILES indicator when focused on file list (cyan)"
