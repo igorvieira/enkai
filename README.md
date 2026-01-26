@@ -1,4 +1,4 @@
-# Murasaki
+# murasaki_rs
 > A TUI tool for resolving git conflicts during merge or rebase operations.
 
 
@@ -8,7 +8,7 @@
 [![Rust Version](https://img.shields.io/badge/rust-stable-brightgreen.svg)](https://www.rust-lang.org)
 
 
-<img src="https://res.cloudinary.com/dje6m1lab/image/upload/v1769397667/ChatGPT_Image_Jan_26_2026_12_20_52_AM_g6zfhy.png" width="700" height="430"  />
+<img src="https://res.cloudinary.com/dje6m1lab/image/upload/v1769398314/ChatGPT_Image_Jan_26_2026_12_31_41_AM_f1xewn.png" width="700" height="430"  />
 
 ## Installation
 
