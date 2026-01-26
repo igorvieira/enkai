@@ -15,8 +15,8 @@ use ratatui::{
 use std::io;
 
 use crate::git::{
-    get_repository_status, restore_file, stage_file, unstage_file,
-    restore_all, stage_all, unstage_all, commit_changes, FileStatus,
+    commit_changes, get_repository_status, restore_all, restore_file, stage_all, stage_file,
+    unstage_all, unstage_file, FileStatus,
 };
 
 const MURASAKI_BANNER: &str = r#"
@@ -218,8 +218,8 @@ impl StatusView {
         let main_chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([
-                Constraint::Percentage(20),  // Left file list
-                Constraint::Percentage(80),  // Right content
+                Constraint::Percentage(20), // Left file list
+                Constraint::Percentage(80), // Right content
             ])
             .split(area);
 
@@ -230,8 +230,8 @@ impl StatusView {
         let right_chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Min(0),      // Main content
-                Constraint::Length(3),   // Help
+                Constraint::Min(0),    // Main content
+                Constraint::Length(3), // Help
             ])
             .split(main_chunks[1]);
 
@@ -240,8 +240,7 @@ impl StatusView {
             RightPanelView::FileContent => self.render_file_content_view(f, right_chunks[0]),
             RightPanelView::CommitModal => {
                 // Render solid background instead of content
-                let bg = Block::default()
-                    .style(Style::default().bg(Color::Black));
+                let bg = Block::default().style(Style::default().bg(Color::Black));
                 f.render_widget(bg, right_chunks[0]);
                 // Render modal on top
                 self.render_commit_modal(f, area);
@@ -269,15 +268,29 @@ impl StatusView {
 
         // Separate files into staged and unstaged
         let staged: Vec<&FileStatus> = self.files.iter().filter(|f| f.is_staged()).collect();
-        let unstaged: Vec<&FileStatus> = self.files.iter().filter(|f| f.is_modified_in_workdir() && !f.is_staged()).collect();
-        let both: Vec<&FileStatus> = self.files.iter().filter(|f| f.is_staged() && f.is_modified_in_workdir()).collect();
+        let unstaged: Vec<&FileStatus> = self
+            .files
+            .iter()
+            .filter(|f| f.is_modified_in_workdir() && !f.is_staged())
+            .collect();
+        let both: Vec<&FileStatus> = self
+            .files
+            .iter()
+            .filter(|f| f.is_staged() && f.is_modified_in_workdir())
+            .collect();
 
         let mut items: Vec<ListItem> = Vec::new();
         let mut current_index = 0;
 
         // Staged changes section
         if !staged.is_empty() {
-            items.push(ListItem::new("Staged:").style(Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)));
+            items.push(
+                ListItem::new("Staged:").style(
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::BOLD),
+                ),
+            );
             for file in &staged {
                 let status_display = file.display_status();
                 let path = file.path.display().to_string();
@@ -299,7 +312,13 @@ impl StatusView {
 
         // Files with both staged and unstaged changes
         if !both.is_empty() {
-            items.push(ListItem::new("Both:").style(Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)));
+            items.push(
+                ListItem::new("Both:").style(
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                ),
+            );
             for file in &both {
                 let status_display = file.display_status();
                 let path = file.path.display().to_string();
@@ -321,7 +340,10 @@ impl StatusView {
 
         // Unstaged changes section
         if !unstaged.is_empty() {
-            items.push(ListItem::new("Unstaged:").style(Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)));
+            items.push(
+                ListItem::new("Unstaged:")
+                    .style(Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
+            );
             for file in &unstaged {
                 let status_display = file.display_status();
                 let path = file.path.display().to_string();
@@ -353,10 +375,7 @@ impl StatusView {
                     .borders(Borders::ALL)
                     .border_style(Style::default().fg(Color::Magenta)),
             )
-            .highlight_style(
-                Style::default()
-                    .add_modifier(Modifier::BOLD),
-            );
+            .highlight_style(Style::default().add_modifier(Modifier::BOLD));
 
         f.render_stateful_widget(list, area, &mut state);
     }
@@ -366,14 +385,18 @@ impl StatusView {
         let vertical_chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Percentage(30),  // Top padding
-                Constraint::Min(10),         // Banner
-                Constraint::Percentage(30),  // Bottom padding
+                Constraint::Percentage(30), // Top padding
+                Constraint::Min(10),        // Banner
+                Constraint::Percentage(30), // Bottom padding
             ])
             .split(area);
 
         let banner = Paragraph::new(MURASAKI_BANNER)
-            .style(Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD))
+            .style(
+                Style::default()
+                    .fg(Color::Magenta)
+                    .add_modifier(Modifier::BOLD),
+            )
             .alignment(Alignment::Center);
         f.render_widget(banner, vertical_chunks[1]);
     }
@@ -434,27 +457,24 @@ impl StatusView {
             .direction(Direction::Vertical)
             .margin(1)
             .constraints([
-                Constraint::Length(3),  // Input field
-                Constraint::Length(1),  // Error message
-                Constraint::Length(1),  // Help text
+                Constraint::Length(3), // Input field
+                Constraint::Length(1), // Error message
+                Constraint::Length(1), // Help text
             ])
             .split(modal_area);
 
         // Render input field
-        let input = Paragraph::new(input_text)
-            .style(input_style)
-            .block(
-                Block::default()
-                    .title("Commit Message")
-                    .borders(Borders::ALL)
-                    .border_style(Style::default().fg(Color::Magenta)),
-            );
+        let input = Paragraph::new(input_text).style(input_style).block(
+            Block::default()
+                .title("Commit Message")
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Color::Magenta)),
+        );
         f.render_widget(input, modal_chunks[0]);
 
         // Render error message if present
         if let Some(ref error) = self.commit_error {
-            let error_msg = Paragraph::new(error.as_str())
-                .style(Style::default().fg(Color::Red));
+            let error_msg = Paragraph::new(error.as_str()).style(Style::default().fg(Color::Red));
             f.render_widget(error_msg, modal_chunks[1]);
         }
 
@@ -468,7 +488,11 @@ impl StatusView {
         let modal_block = Block::default()
             .title("Commit Changes")
             .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD))
+            .border_style(
+                Style::default()
+                    .fg(Color::Magenta)
+                    .add_modifier(Modifier::BOLD),
+            )
             .style(Style::default().bg(Color::Black));
         f.render_widget(modal_block, modal_area);
     }

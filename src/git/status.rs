@@ -45,7 +45,11 @@ impl StatusChange {
 impl FileStatus {
     pub fn display_status(&self) -> String {
         let index_icon = self.index_status.as_ref().map(|s| s.icon()).unwrap_or(" ");
-        let workdir_icon = self.workdir_status.as_ref().map(|s| s.icon()).unwrap_or(" ");
+        let workdir_icon = self
+            .workdir_status
+            .as_ref()
+            .map(|s| s.icon())
+            .unwrap_or(" ");
         format!("{}{}", index_icon, workdir_icon)
     }
 
@@ -77,11 +81,11 @@ impl FileStatusType {
 
     pub fn color(&self) -> &str {
         match self {
-            FileStatusType::Modified => "\x1b[33m", // Yellow
-            FileStatusType::Added => "\x1b[32m",    // Green
-            FileStatusType::Deleted => "\x1b[31m",  // Red
-            FileStatusType::Renamed => "\x1b[36m",  // Cyan
-            FileStatusType::Untracked => "\x1b[37m", // White
+            FileStatusType::Modified => "\x1b[33m",   // Yellow
+            FileStatusType::Added => "\x1b[32m",      // Green
+            FileStatusType::Deleted => "\x1b[31m",    // Red
+            FileStatusType::Renamed => "\x1b[36m",    // Cyan
+            FileStatusType::Untracked => "\x1b[37m",  // White
             FileStatusType::Conflicted => "\x1b[35m", // Magenta
         }
     }
