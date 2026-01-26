@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
         rust: [stable, beta]
     steps:
       - uses: actions/checkout@v4
@@ -116,7 +116,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
 
@@ -130,7 +130,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: saki-${{ matrix.os }}
-          path: |
-            target/release/saki
-            target/release/saki.exe
+          path: target/release/saki
           if-no-files-found: ignore

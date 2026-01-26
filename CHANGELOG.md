@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions CI/CD workflows for automated testing
 - Test coverage reporting with codecov
 - Security audit workflow with cargo-audit
-- Multi-platform release workflow (Linux, macOS, Windows)
+- Multi-platform release workflow (Linux, macOS)
 - Comprehensive unit tests for domain layer (16 new tests)
 - Testing guide documentation (docs/TESTING.md)
 - CI status badges in README
@@ -32,14 +32,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Removed emojis from documentation and scripts for better accessibility
+- Removed Windows support from CI/CD workflows
 
 ### Fixed
 - Fixed clippy warning in domain tests (clone on Copy type)
 
 ### CI/CD
-- Tests run on Ubuntu, macOS, and Windows
+- Tests run on Ubuntu and macOS
 - Code quality checks (clippy, rustfmt)
-- Automated release builds for all platforms
+- Automated release builds for Linux and macOS
 - Coverage tracking and reporting
 
 ## [0.1.1] - 2026-01-01
