@@ -3,7 +3,6 @@
 
 
 [![CI](https://github.com/igorvieira/murasaki_rs/workflows/CI/badge.svg)](https://github.com/igorvieira/murasaki_rs/actions/workflows/ci.yml)
-[![Codecov](https://codecov.io/gh/igorvieira/murasaki_rs/branch/main/graph/badge.svg)](https://codecov.io/gh/igorvieira/murasaki_rs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Rust Version](https://img.shields.io/badge/rust-stable-brightgreen.svg)](https://www.rust-lang.org)
 
