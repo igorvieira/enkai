@@ -239,8 +239,10 @@ impl StatusView {
             RightPanelView::Banner => self.render_banner_view(f, right_chunks[0]),
             RightPanelView::FileContent => self.render_file_content_view(f, right_chunks[0]),
             RightPanelView::CommitModal => {
-                // Still render banner/content behind modal
-                self.render_banner_view(f, right_chunks[0]);
+                // Render solid background instead of content
+                let bg = Block::default()
+                    .style(Style::default().bg(Color::Black));
+                f.render_widget(bg, right_chunks[0]);
                 // Render modal on top
                 self.render_commit_modal(f, area);
             }
@@ -413,24 +415,6 @@ impl StatusView {
             width: modal_width.min(area.width),
             height: modal_height.min(area.height),
         };
-
-        // Render background overlay with padding
-        let bg_padding = 2;
-        let background_area = Rect {
-            x: modal_area.x.saturating_sub(bg_padding),
-            y: modal_area.y.saturating_sub(bg_padding),
-            width: modal_area.width + (bg_padding * 2),
-            height: modal_area.height + (bg_padding * 2),
-        };
-
-        let background = Block::default()
-            .style(Style::default().bg(Color::DarkGray));
-        f.render_widget(background, background_area);
-
-        // Clear modal area with darker background
-        let modal_bg = Block::default()
-            .style(Style::default().bg(Color::Black));
-        f.render_widget(modal_bg, modal_area);
 
         // Create input field text
         let input_text = if self.commit_message.is_empty() {
