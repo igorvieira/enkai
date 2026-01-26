@@ -1,4 +1,6 @@
 # Murasaki
+> A TUI tool for resolving git conflicts during merge or rebase operations.
+
 
 [![CI](https://github.com/igorvieira/murasaki_rs/workflows/CI/badge.svg)](https://github.com/igorvieira/murasaki_rs/actions/workflows/ci.yml)
 [![Codecov](https://codecov.io/gh/igorvieira/murasaki_rs/branch/main/graph/badge.svg)](https://codecov.io/gh/igorvieira/murasaki_rs)
@@ -6,8 +8,7 @@
 [![Rust Version](https://img.shields.io/badge/rust-stable-brightgreen.svg)](https://www.rust-lang.org)
 
 
-<img src="https://res.cloudinary.com/dje6m1lab/image/upload/v1769396215/a804dd78-1a0f-4f5b-8715-e6ac1eb254a9_gior6p.png" />
-> A TUI tool for resolving git conflicts during merge or rebase operations.
+<img src="https://res.cloudinary.com/dje6m1lab/image/upload/v1769396215/a804dd78-1a0f-4f5b-8715-e6ac1eb254a9_gior6p.png" width="700" height="430"  />
 
 ## Installation
 
