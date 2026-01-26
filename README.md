@@ -11,17 +11,20 @@
 
 ## Installation
 
-### Quick Install (Recommended)
+
+### Manual Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/igorvieira/murasaki_rs/main/install.sh | bash
-```
-
-### From Source
-
-```bash
+git clone https://github.com/igorvieira/murasaki_rs.git ~/.config/murasaki_rs
+cd ~/.config/murasaki_rs
 cargo install --path .
 ```
+
+This will:
+- Clone the repository to `~/.config/murasaki_rs`
+- Build and install using `cargo install --path .`
+- Install the `saki` binary to `~/.cargo/bin/`
+
 
 ## Usage
 

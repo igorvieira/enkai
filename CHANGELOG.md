@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive unit tests for domain layer (16 new tests)
 - Testing guide documentation (docs/TESTING.md)
 - CI status badges in README
-- One-line curl install script for easy installation
+- One-line curl install script (clones to ~/.config/murasaki_rs and builds from source)
 - Homebrew formula for macOS and Linux installation
 - Script to update Homebrew formula (scripts/update-homebrew-formula.sh)
 
