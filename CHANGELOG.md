@@ -18,6 +18,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - One-line curl install script (clones to ~/.config/murasaki_rs and builds from source)
 - Homebrew formula for macOS and Linux installation
 - Script to update Homebrew formula (scripts/update-homebrew-formula.sh)
+- ANSI art banner for murasaki in purple, centered, borderless
+- Interactive status view when no conflicts are present
+- Split-pane layout: 25% left menu, 75% right dynamic content panel
+- Simplified menu: View Changes and Quit only
+- All file operations available in single View Changes view
+- Enhanced git status tracking with **staged vs unstaged** separation
+- Files organized into three sections: Staged, Staged+Unstaged, Unstaged
+- Two-character status display ([XY] format) showing index and workdir status
+- Color-coded sections: green (staged), yellow (both), red (unstaged)
+- Unified file operations in View Changes view:
+  - 'a' to stage files (git add)
+  - 's' to unstage files (git restore --staged)
+  - 'r' to restore files (git restore)
+- All operations accessible via bottom help bar
+- Title bar shows counts for each category
 
 ### Changed
 - Renamed binary from `murasaki_rs` to `saki` for easier command-line usage

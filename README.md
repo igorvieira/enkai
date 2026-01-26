@@ -28,13 +28,46 @@ This will:
 
 ## Usage
 
-When you have git conflicts:
+### When You Have Git Conflicts
 
 ```bash
 saki
 ```
 
+### When There Are No Conflicts
+
+If you run `saki` without any active merge/rebase conflicts, it will show an interactive status view with:
+
+**Layout:**
+- **Left Panel (25%)**: Menu with options
+  - View Changes
+  - Quit
+- **Right Panel (75%)**: Dynamic content based on menu selection
+  - Default: ANSI art banner (murasaki in purple, centered)
+  - View Changes: File list organized by status (Staged, Both, Unstaged) with inline operations
+
 ## Commands
+
+### Status View (No Conflicts)
+
+**When on Menu (Banner):**
+- `j/k` or `↑/↓` - Navigate menu
+- `Enter` - Select menu option
+- `q` - Quit
+
+**When in View Changes:**
+- `j/k` or `↑/↓` - Navigate files
+- `a` - Stage selected file (git add)
+- `s` - Unstage selected file (git restore --staged)
+- `r` - Restore selected file to last committed state (git restore)
+- `Esc` - Return to menu
+- `q` - Quit
+
+**File Status Display:**
+- Files are shown with two-character status: `[XY]`
+  - First character (X): Staged status (index)
+  - Second character (Y): Unstaged status (working directory)
+  - Examples: `[M ]` = staged modification, `[ M]` = unstaged modification, `[MM]` = both
 
 ### File List
 - `j/k` or `↑/↓` - Navigate
@@ -71,6 +104,7 @@ saki
 
 ## Features
 
+### Conflict Resolution
 - Split-pane interface with file list and code view
 - Syntax highlighting for conflict regions
 - Visual indicators for resolved/unresolved conflicts
@@ -78,6 +112,22 @@ saki
   - Current (HEAD): Blue background
   - Incoming: Red background
   - Both: Purple background
+
+### Status View (New!)
+- Split layout: 25% left menu, 75% right content panel
+- ANSI art banner (murasaki in purple, centered, borderless)
+- Always-visible menu on the left
+- Dynamic right panel that changes based on menu selection
+- Interactive git status display with **staged vs unstaged** separation
+- Files organized into three sections:
+  - **Staged Changes** (green): Ready to commit
+  - **Staged + Unstaged Changes** (yellow): Partially staged files
+  - **Unstaged Changes** (red): Working directory modifications
+- Two-character status display (e.g., `[M ]`, `[ M]`, `[MM]`)
+- Restore files functionality (both staged and unstaged)
+- Clean, VS Code/Cursor-like interface
+
+### Safety Features
 - Atomic file writes to prevent data corruption
 - Terminal cleanup on panic for safety
 - Input validation to prevent path traversal

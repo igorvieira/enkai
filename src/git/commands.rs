@@ -60,3 +60,78 @@ pub fn stage_file(path: &str) -> Result<()> {
 
     Ok(())
 }
+
+/// Unstage a file (git restore --staged)
+pub fn unstage_file(path: &str) -> Result<()> {
+    let output = Command::new("git")
+        .args(["restore", "--staged", path])
+        .output()
+        .context("Failed to execute git restore --staged")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("git restore --staged failed: {}", stderr);
+    }
+
+    Ok(())
+}
+
+/// Restore a file to last committed state (git restore)
+pub fn restore_file(path: &str) -> Result<()> {
+    let output = Command::new("git")
+        .args(["restore", path])
+        .output()
+        .context("Failed to execute git restore")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("git restore failed: {}", stderr);
+    }
+
+    Ok(())
+}
+
+/// Stage all files (git add --all)
+pub fn stage_all() -> Result<()> {
+    let output = Command::new("git")
+        .args(["add", "--all"])
+        .output()
+        .context("Failed to execute git add --all")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("git add --all failed: {}", stderr);
+    }
+
+    Ok(())
+}
+
+/// Unstage all files (git restore --staged .)
+pub fn unstage_all() -> Result<()> {
+    let output = Command::new("git")
+        .args(["restore", "--staged", "."])
+        .output()
+        .context("Failed to execute git restore --staged .")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("git restore --staged . failed: {}", stderr);
+    }
+
+    Ok(())
+}
+
+/// Restore all files to last committed state (git restore .)
+pub fn restore_all() -> Result<()> {
+    let output = Command::new("git")
+        .args(["restore", "."])
+        .output()
+        .context("Failed to execute git restore .")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("git restore . failed: {}", stderr);
+    }
+
+    Ok(())
+}
