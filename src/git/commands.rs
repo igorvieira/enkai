@@ -135,3 +135,18 @@ pub fn restore_all() -> Result<()> {
 
     Ok(())
 }
+
+/// Create a git commit with the given message
+pub fn commit_changes(message: &str) -> Result<()> {
+    let output = Command::new("git")
+        .args(["commit", "-m", message])
+        .output()
+        .context("Failed to execute git commit")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("git commit failed: {}", stderr);
+    }
+
+    Ok(())
+}

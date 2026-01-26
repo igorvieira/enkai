@@ -8,7 +8,8 @@ pub use applier::apply_resolutions;
 pub use commands::{
     abort_rebase, continue_rebase, skip_rebase,
     stage_file, unstage_file, restore_file,
-    stage_all, unstage_all, restore_all
+    stage_all, unstage_all, restore_all,
+    commit_changes
 };
 pub use detector::{detect_git_operation, find_conflicted_files};
 pub use parser::parse_conflicts;
