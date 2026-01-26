@@ -11,6 +11,14 @@
 
 ## Installation
 
+### Quick Install (Recommended)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/igorvieira/murasaki_rs/main/install.sh | bash
+```
+
+### From Source
+
 ```bash
 cargo install --path .
 ```

@@ -1,11 +1,12 @@
 #!/bin/bash
 set -e
 
-# Murasaki installation script
-# Usage: curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/murasaki_rs/main/install.sh | sh
+# Saki (Murasaki) installation script
+# Usage: curl -fsSL https://raw.githubusercontent.com/igorvieira/murasaki_rs/main/install.sh | bash
 
-REPO="YOUR_USERNAME/murasaki_rs"
-INSTALL_DIR="${HOME}/.local/bin"
+VERSION="${VERSION:-0.1.1}"
+REPO="igorvieira/murasaki_rs"
+INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 BINARY_NAME="saki"
 
 # Detect OS and architecture
@@ -39,52 +40,72 @@ case "${ARCH}" in
 esac
 
 # Construct download URL for the release binary
-# This assumes you'll create releases with binaries named like: saki-linux-x86_64, saki-macos-aarch64, etc.
-DOWNLOAD_URL="https://github.com/${REPO}/releases/latest/download/saki-${OS_TYPE}-${ARCH_TYPE}"
+DOWNLOAD_URL="https://github.com/${REPO}/releases/download/v${VERSION}/saki-${OS_TYPE}-${ARCH_TYPE}"
 
-echo "Installing Murasaki..."
+echo "Installing Saki (Murasaki)..."
+echo "Version: ${VERSION}"
 echo "OS: ${OS_TYPE}"
 echo "Architecture: ${ARCH_TYPE}"
+echo ""
 
-# Create install directory if it doesn't exist
-mkdir -p "${INSTALL_DIR}"
+# Create temp directory
+TMP_DIR=$(mktemp -d)
+trap "rm -rf $TMP_DIR" EXIT
 
 # Download binary
 echo "Downloading from ${DOWNLOAD_URL}..."
 if command -v curl > /dev/null 2>&1; then
-    curl -sSL "${DOWNLOAD_URL}" -o "${INSTALL_DIR}/${BINARY_NAME}"
+    if ! curl -fsSL "${DOWNLOAD_URL}" -o "${TMP_DIR}/${BINARY_NAME}"; then
+        echo "Error: Failed to download binary. Make sure version ${VERSION} is released."
+        exit 1
+    fi
 elif command -v wget > /dev/null 2>&1; then
-    wget -q "${DOWNLOAD_URL}" -O "${INSTALL_DIR}/${BINARY_NAME}"
+    if ! wget -q "${DOWNLOAD_URL}" -O "${TMP_DIR}/${BINARY_NAME}"; then
+        echo "Error: Failed to download binary. Make sure version ${VERSION} is released."
+        exit 1
+    fi
 else
     echo "Error: Neither curl nor wget is available. Please install one of them."
     exit 1
 fi
 
 # Make binary executable
-chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
+chmod +x "${TMP_DIR}/${BINARY_NAME}"
+
+# Install binary
+if [ ! -w "$INSTALL_DIR" ]; then
+    echo "Warning: $INSTALL_DIR is not writable. Installing to ~/.local/bin instead."
+    INSTALL_DIR="$HOME/.local/bin"
+    mkdir -p "$INSTALL_DIR"
+fi
+
+echo "Installing to ${INSTALL_DIR}/${BINARY_NAME}..."
+if [ -w "$INSTALL_DIR" ]; then
+    mv "${TMP_DIR}/${BINARY_NAME}" "${INSTALL_DIR}/${BINARY_NAME}"
+else
+    sudo mv "${TMP_DIR}/${BINARY_NAME}" "${INSTALL_DIR}/${BINARY_NAME}"
+fi
 
 echo ""
-echo "✓ Murasaki has been installed to ${INSTALL_DIR}/${BINARY_NAME}"
+echo "Success! Saki has been installed to ${INSTALL_DIR}/${BINARY_NAME}"
 echo ""
 
-# Check if install directory is in PATH
-case ":${PATH}:" in
-    *":${INSTALL_DIR}:"*)
-        echo "✓ ${INSTALL_DIR} is already in your PATH"
-        echo ""
-        echo "You can now use saki by running: murasaki_rs"
-        ;;
-    *)
-        echo "⚠ ${INSTALL_DIR} is not in your PATH"
-        echo ""
-        echo "Add the following line to your shell configuration file:"
-        echo "  export PATH=\"\${HOME}/.local/bin:\${PATH}\""
-        echo ""
-        echo "Then reload your shell or run:"
-        echo "  source ~/.bashrc  # for bash"
-        echo "  source ~/.zshrc   # for zsh"
-        ;;
-esac
-
-echo ""
-echo "Get started with: murasaki_rs --help"
+# Check if command is accessible
+if command -v ${BINARY_NAME} > /dev/null 2>&1; then
+    echo "${BINARY_NAME} is ready to use!"
+    ${BINARY_NAME} --version
+    echo ""
+    echo "Run 'saki' in a repository with git conflicts to start."
+elif [ "$INSTALL_DIR" = "$HOME/.local/bin" ]; then
+    echo "Note: ${INSTALL_DIR} might not be in your PATH."
+    echo ""
+    echo "Add the following line to your shell configuration file:"
+    echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
+    echo ""
+    echo "Then reload your shell or run:"
+    echo "  source ~/.bashrc  # for bash"
+    echo "  source ~/.zshrc   # for zsh"
+else
+    echo "Warning: ${BINARY_NAME} command not found in PATH."
+    echo "You may need to restart your terminal or add ${INSTALL_DIR} to your PATH."
+fi
