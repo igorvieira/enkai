@@ -5,7 +5,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Rust Version](https://img.shields.io/badge/rust-stable-brightgreen.svg)](https://www.rust-lang.org)
 
-A TUI tool for resolving git conflicts during merge or rebase operations.
+
+<img src="https://res.cloudinary.com/dje6m1lab/image/upload/v1769396215/a804dd78-1a0f-4f5b-8715-e6ac1eb254a9_gior6p.png" />
+> A TUI tool for resolving git conflicts during merge or rebase operations.
 
 ## Installation
 
