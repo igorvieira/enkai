@@ -8,6 +8,7 @@ use ratatui::{
 
 use crate::app::AppState;
 use crate::domain::Resolution;
+use crate::tui::colors::MurasakiColors;
 
 pub fn render_conflict_view(frame: &mut Frame, state: &AppState, area: Rect) {
     let chunks = Layout::default()
@@ -15,7 +16,7 @@ pub fn render_conflict_view(frame: &mut Frame, state: &AppState, area: Rect) {
         .constraints([
             Constraint::Length(3), // Header
             Constraint::Min(0),    // Content
-            Constraint::Length(5), // Footer
+            Constraint::Length(1), // Footer (single-line, sticks to bottom)
         ])
         .split(area);
 
@@ -114,9 +115,9 @@ pub fn render_conflict_view(frame: &mut Frame, state: &AppState, area: Rect) {
 
     frame.render_widget(incoming, content_chunks[1]);
 
-    // Footer - keybindings and status
-    let both_selected = matches!(resolution, Some(Resolution::Both));
-    let both_text = if both_selected {
+    // Footer - keybindings (single line, full-width bar at bottom)
+    let _both_selected = matches!(resolution, Some(Resolution::Both));
+    let _both_text = if _both_selected {
         "=Both ✓".to_string()
     } else {
         "=Both".to_string()
@@ -130,61 +131,60 @@ pub fn render_conflict_view(frame: &mut Frame, state: &AppState, area: Rect) {
     };
 
     let save_text = format!(
-        "=Save ({}/{} resolved) | ",
+        "({}/{} resolved)",
         file.resolved_count(),
         file.total_conflicts()
     );
 
-    let footer = Paragraph::new(vec![
-        Line::from(vec![
-            Span::raw("Keys: "),
-            Span::styled(
-                "c",
-                Style::default()
-                    .fg(Color::Green)
-                    .add_modifier(Modifier::BOLD),
-            ),
-            Span::raw("=Current | "),
-            Span::styled(
-                "i",
-                Style::default()
-                    .fg(Color::Cyan)
-                    .add_modifier(Modifier::BOLD),
-            ),
-            Span::raw("=Incoming | "),
-            Span::styled(
-                "b",
-                Style::default()
-                    .fg(Color::Yellow)
-                    .add_modifier(Modifier::BOLD),
-            ),
-            Span::raw(both_text),
-        ]),
-        Line::from(vec![
-            Span::styled("j/k", Style::default().add_modifier(Modifier::BOLD)),
-            Span::raw(" or "),
-            Span::styled("↑/↓", Style::default().add_modifier(Modifier::BOLD)),
-            Span::raw("=Navigate conflicts | "),
-            Span::styled("s", save_style.add_modifier(Modifier::BOLD)),
-            Span::raw(save_text),
-            Span::styled("Esc", Style::default().add_modifier(Modifier::BOLD)),
-            Span::raw("=Back | "),
-            Span::styled("q", Style::default().add_modifier(Modifier::BOLD)),
-            Span::raw("=Quit"),
-        ]),
-        Line::from(if can_save {
-            Span::styled(
-                "All conflicts resolved! Press 's' to save.",
-                Style::default()
-                    .fg(Color::Green)
-                    .add_modifier(Modifier::BOLD),
-            )
-        } else {
-            Span::raw("")
-        }),
-    ])
-    .block(Block::default().borders(Borders::ALL))
-    .alignment(Alignment::Left);
+    let footer_line = Line::from(vec![
+        Span::styled("keys: ", Style::default().fg(Color::White)),
+        Span::styled(
+            "c",
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("=current ", Style::default().fg(Color::White)),
+        Span::styled(
+            "i",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("=incoming ", Style::default().fg(Color::White)),
+        Span::styled(
+            "b",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("=both ", Style::default().fg(Color::White)),
+        Span::styled(
+            "j/k",
+            Style::default()
+                .fg(Color::White)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("=conflicts ", Style::default().fg(Color::White)),
+        Span::styled(
+            "s",
+            save_style
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled("=save ", Style::default().fg(Color::White)),
+        Span::styled(
+            save_text,
+            Style::default().fg(save_style.fg.unwrap_or(Color::White)),
+        ),
+        Span::styled("  Esc", Style::default().add_modifier(Modifier::BOLD)),
+        Span::styled("=back ", Style::default().fg(Color::White)),
+        Span::styled("q", Style::default().add_modifier(Modifier::BOLD)),
+        Span::styled("=quit", Style::default().fg(Color::White)),
+    ]);
+
+    let footer = Paragraph::new(footer_line)
+        .style(Style::default().bg(MurasakiColors::FOOTER_BG))
+        .alignment(Alignment::Left);
 
     frame.render_widget(footer, chunks[2]);
 }

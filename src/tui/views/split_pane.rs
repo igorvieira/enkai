@@ -433,10 +433,10 @@ fn render_footer(
         ])
     };
 
-    // Footer content with background and left alignment
+    // Footer content with background and center alignment
     let footer = Paragraph::new(keybindings)
         .style(Style::default().bg(MurasakiColors::FOOTER_BG))
-        .alignment(Alignment::Left);
+        .alignment(Alignment::Center);
 
     frame.render_widget(footer, area);
 }
