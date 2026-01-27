@@ -387,19 +387,6 @@ fn render_footer(
 ) {
     let _can_save = file.is_fully_resolved();
 
-    // Fill the entire footer area with background color first
-    let background = Paragraph::new("").style(Style::default().bg(MurasakiColors::FOOTER_BG));
-    frame.render_widget(background, area);
-
-    // Create horizontal layout with minimal left padding (no top/bottom padding)
-    let horizontal_chunks = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Length(2), // Minimal left padding
-            Constraint::Min(0),    // Content area
-        ])
-        .split(area);
-
     let white = Color::White;
 
     let keybindings = if state.focus == PaneFocus::CodeView {
@@ -446,8 +433,10 @@ fn render_footer(
         ])
     };
 
-    // Footer content with left alignment, single line
-    let footer = Paragraph::new(keybindings).alignment(Alignment::Left);
+    // Footer content with background and left alignment
+    let footer = Paragraph::new(keybindings)
+        .style(Style::default().bg(MurasakiColors::FOOTER_BG))
+        .alignment(Alignment::Left);
 
-    frame.render_widget(footer, horizontal_chunks[1]);
+    frame.render_widget(footer, area);
 }

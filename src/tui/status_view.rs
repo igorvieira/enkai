@@ -233,7 +233,7 @@ impl StatusView {
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Min(0),    // Main content
-                Constraint::Length(4), // Help (2 lines + 2 rows padding)
+                Constraint::Length(2), // Help (2 lines)
             ])
             .split(main_chunks[1]);
 
@@ -480,20 +480,6 @@ impl StatusView {
     }
 
     fn render_help(&self, f: &mut Frame, area: Rect) {
-        // Fill the entire footer area with background color first (matching conflict manager)
-        let background =
-            Paragraph::new("").style(Style::default().bg(Color::Rgb(60, 60, 70))); // FOOTER_BG
-        f.render_widget(background, area);
-
-        // Create layout with 2 rows of padding at the bottom
-        let help_chunks = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([
-                Constraint::Length(2), // Help text (2 lines)
-                Constraint::Length(2), // Bottom padding (2 rows)
-            ])
-            .split(area);
-
         // Split help text into 2 lines
         let (line1, line2) = match self.current_view {
             RightPanelView::Banner => (
@@ -504,18 +490,16 @@ impl StatusView {
                 "j/k: Navigate | Esc: Back | a: Stage | s: Unstage | r: Restore",
                 "A/S/R: All | c: Commit | q: Quit",
             ),
-            RightPanelView::CommitModal => (
-                "Type message | Enter: Commit | Esc: Cancel",
-                "",
-            ),
+            RightPanelView::CommitModal => ("Type message | Enter: Commit | Esc: Cancel", ""),
         };
 
         let help = Paragraph::new(vec![
             Line::from(Span::styled(line1, Style::default().fg(Color::White))),
             Line::from(Span::styled(line2, Style::default().fg(Color::White))),
         ])
+        .style(Style::default().bg(Color::Rgb(60, 60, 70))) // FOOTER_BG background
         .alignment(Alignment::Center);
-        f.render_widget(help, help_chunks[0]);
+        f.render_widget(help, area);
     }
 }
 
@@ -549,18 +533,19 @@ pub fn run_status_view(repo: &Repository) -> Result<()> {
                         Constraint::Length(2), // Footer help
                     ])
                     .split(area);
-                
+
                 let input_chunk = chunks[1];
                 // Input area is now 1 row, so text and cursor are on the same line
                 let input_y = input_chunk.y;
-                
+
                 // Calculate X position to match Paragraph center alignment exactly
                 let prompt_len = 2; // "> "
                 let text_len = view.commit_message.len() as u16;
                 let total_text_len = prompt_len + text_len;
                 // Paragraph centers text: text starts at x + (width - text_len) / 2
                 // Cursor should be at the end of the text: start + text_len
-                let text_start_x = input_chunk.x + (input_chunk.width.saturating_sub(total_text_len)) / 2;
+                let text_start_x =
+                    input_chunk.x + (input_chunk.width.saturating_sub(total_text_len)) / 2;
                 let cursor_x = text_start_x + total_text_len;
 
                 f.set_cursor(cursor_x, input_y);
