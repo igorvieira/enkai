@@ -150,3 +150,21 @@ pub fn commit_changes(message: &str) -> Result<()> {
 
     Ok(())
 }
+
+/// Get the diff for a file (staged or unstaged)
+pub fn get_file_diff(path: &str, staged: bool) -> Result<String> {
+    let mut args = vec!["diff"];
+    if staged {
+        args.push("--cached");
+    }
+    args.push("--");
+    args.push(path);
+
+    let output = Command::new("git")
+        .args(&args)
+        .output()
+        .context("Failed to execute git diff")?;
+
+    let diff = String::from_utf8_lossy(&output.stdout).to_string();
+    Ok(diff)
+}

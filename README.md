@@ -14,7 +14,6 @@
 
 ## Installation
 
-
 ### Manual Installation
 
 ```bash

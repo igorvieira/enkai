@@ -17,9 +17,10 @@ use ratatui::{
 use std::io;
 
 use crate::git::{
-    commit_changes, get_repository_status, restore_all, restore_file, stage_all, stage_file,
-    unstage_all, unstage_file, FileStatus,
+    commit_changes, get_file_diff, get_repository_status, restore_all, restore_file, stage_all,
+    stage_file, unstage_all, unstage_file, FileStatus,
 };
+use crate::tui::colors::MurasakiColors;
 
 const MURASAKI_BANNER: &str = r#"
 
@@ -37,6 +38,8 @@ pub struct StatusView {
     selected_file_index: usize,
     current_view: RightPanelView,
     file_content: Option<String>,
+    file_diff: Option<String>,
+    diff_scroll: usize,
     commit_message: String,
     commit_error: Option<String>,
 }
@@ -50,14 +53,50 @@ enum RightPanelView {
 
 impl StatusView {
     pub fn new(files: Vec<FileStatus>) -> Self {
-        Self {
+        let mut view = Self {
             files,
             selected_file_index: 0,
             current_view: RightPanelView::Banner,
             file_content: None,
+            file_diff: None,
+            diff_scroll: 0,
             commit_message: String::new(),
             commit_error: None,
+        };
+        view.load_file_diff();
+        view
+    }
+
+    fn load_file_diff(&mut self) {
+        if self.files.is_empty() {
+            self.file_diff = None;
+            return;
         }
+
+        let file = &self.files[self.selected_file_index];
+        let path = file.path.to_string_lossy();
+
+        // Get diff based on file status (staged or unstaged)
+        let staged = file.is_staged() && !file.is_modified_in_workdir();
+
+        match get_file_diff(&path, staged) {
+            Ok(diff) => {
+                if diff.is_empty() {
+                    // If no diff (e.g., new untracked file), try to read file content
+                    if let Ok(content) = std::fs::read_to_string(&file.path) {
+                        self.file_diff = Some(format!("New file:\n\n{}", content));
+                    } else {
+                        self.file_diff = Some("No changes to display".to_string());
+                    }
+                } else {
+                    self.file_diff = Some(diff);
+                }
+            }
+            Err(e) => {
+                self.file_diff = Some(format!("Error getting diff: {}", e));
+            }
+        }
+        self.diff_scroll = 0;
     }
 
     fn load_file_content(&mut self) -> Result<()> {
@@ -127,6 +166,7 @@ impl StatusView {
                 // Navigate files
                 if !self.files.is_empty() {
                     self.selected_file_index = (self.selected_file_index + 1) % self.files.len();
+                    self.load_file_diff();
                 }
             }
             KeyCode::Char('k') | KeyCode::Up => {
@@ -134,7 +174,22 @@ impl StatusView {
                 if !self.files.is_empty() {
                     self.selected_file_index =
                         (self.selected_file_index + self.files.len() - 1) % self.files.len();
+                    self.load_file_diff();
                 }
+            }
+            KeyCode::Char('d') if key.modifiers.contains(event::KeyModifiers::CONTROL) => {
+                // Scroll diff down (half page)
+                self.diff_scroll = self.diff_scroll.saturating_add(10);
+            }
+            KeyCode::Char('u') if key.modifiers.contains(event::KeyModifiers::CONTROL) => {
+                // Scroll diff up (half page)
+                self.diff_scroll = self.diff_scroll.saturating_sub(10);
+            }
+            KeyCode::PageDown => {
+                self.diff_scroll = self.diff_scroll.saturating_add(20);
+            }
+            KeyCode::PageUp => {
+                self.diff_scroll = self.diff_scroll.saturating_sub(20);
             }
             KeyCode::Enter => {
                 // Open file content in right panel
@@ -284,25 +339,24 @@ impl StatusView {
 
         // Staged changes section
         if !staged.is_empty() {
-            items.push(
-                ListItem::new("Staged:").style(
-                    Style::default()
-                        .fg(Color::Green)
-                        .add_modifier(Modifier::BOLD),
-                ),
-            );
+            items.push(ListItem::new(Line::from(vec![Span::styled(
+                "▎STAGED",
+                Style::default()
+                    .fg(MurasakiColors::SUCCESS)
+                    .add_modifier(Modifier::BOLD),
+            )])));
             for file in &staged {
                 let status_display = file.display_status();
                 let path = file.path.display().to_string();
-                let line = format!(" [{}] {}", status_display, path);
+                let line = format!("  [{}] {}", status_display, path);
 
                 let style = if current_index == self.selected_file_index {
                     Style::default()
                         .fg(Color::Black)
-                        .bg(Color::Green)
+                        .bg(MurasakiColors::SUCCESS)
                         .add_modifier(Modifier::BOLD)
                 } else {
-                    Style::default().fg(Color::Green)
+                    Style::default().fg(MurasakiColors::SUCCESS)
                 };
 
                 items.push(ListItem::new(line).style(style));
@@ -312,25 +366,24 @@ impl StatusView {
 
         // Files with both staged and unstaged changes
         if !both.is_empty() {
-            items.push(
-                ListItem::new("Both:").style(
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD),
-                ),
-            );
+            items.push(ListItem::new(Line::from(vec![Span::styled(
+                "▎BOTH",
+                Style::default()
+                    .fg(MurasakiColors::WARNING)
+                    .add_modifier(Modifier::BOLD),
+            )])));
             for file in &both {
                 let status_display = file.display_status();
                 let path = file.path.display().to_string();
-                let line = format!(" [{}] {}", status_display, path);
+                let line = format!("  [{}] {}", status_display, path);
 
                 let style = if current_index == self.selected_file_index {
                     Style::default()
                         .fg(Color::Black)
-                        .bg(Color::Yellow)
+                        .bg(MurasakiColors::WARNING)
                         .add_modifier(Modifier::BOLD)
                 } else {
-                    Style::default().fg(Color::Yellow)
+                    Style::default().fg(MurasakiColors::WARNING)
                 };
 
                 items.push(ListItem::new(line).style(style));
@@ -340,22 +393,24 @@ impl StatusView {
 
         // Unstaged changes section
         if !unstaged.is_empty() {
-            items.push(
-                ListItem::new("Unstaged:")
-                    .style(Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
-            );
+            items.push(ListItem::new(Line::from(vec![Span::styled(
+                "▎UNSTAGED",
+                Style::default()
+                    .fg(MurasakiColors::ERROR)
+                    .add_modifier(Modifier::BOLD),
+            )])));
             for file in &unstaged {
                 let status_display = file.display_status();
                 let path = file.path.display().to_string();
-                let line = format!(" [{}] {}", status_display, path);
+                let line = format!("  [{}] {}", status_display, path);
 
                 let style = if current_index == self.selected_file_index {
                     Style::default()
                         .fg(Color::Black)
-                        .bg(Color::Red)
+                        .bg(MurasakiColors::ERROR)
                         .add_modifier(Modifier::BOLD)
                 } else {
-                    Style::default().fg(Color::Red)
+                    Style::default().fg(MurasakiColors::ERROR)
                 };
 
                 items.push(ListItem::new(line).style(style));
@@ -372,6 +427,12 @@ impl StatusView {
     }
 
     fn render_banner_view(&self, f: &mut Frame, area: Rect) {
+        // If there's a diff to show, render it instead of the banner
+        if let Some(ref diff) = self.file_diff {
+            self.render_diff_view(f, area, diff);
+            return;
+        }
+
         // Create vertical centering layout
         let vertical_chunks = Layout::default()
             .direction(Direction::Vertical)
@@ -390,6 +451,85 @@ impl StatusView {
             )
             .alignment(Alignment::Center);
         f.render_widget(banner, vertical_chunks[1]);
+    }
+
+    fn render_diff_view(&self, f: &mut Frame, area: Rect, diff: &str) {
+        // Render background
+        let bg = Block::default().style(Style::default().bg(Color::Rgb(30, 30, 35)));
+        f.render_widget(bg, area);
+
+        // Get file name for header
+        let file_name = if !self.files.is_empty() {
+            self.files[self.selected_file_index]
+                .path
+                .display()
+                .to_string()
+        } else {
+            "No file selected".to_string()
+        };
+
+        // Split into header and content
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(2), // Header
+                Constraint::Min(0),    // Diff content
+            ])
+            .split(area);
+
+        // Render header with file name
+        let header = Paragraph::new(Line::from(vec![
+            Span::styled(
+                " Diff: ",
+                Style::default()
+                    .fg(Color::Magenta)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(file_name, Style::default().fg(Color::White)),
+        ]))
+        .style(Style::default().bg(Color::Rgb(50, 50, 55)));
+        f.render_widget(header, chunks[0]);
+
+        // Parse and render diff lines with colors
+        let lines: Vec<Line> = diff
+            .lines()
+            .skip(self.diff_scroll)
+            .map(|line| {
+                if line.starts_with('+') && !line.starts_with("+++") {
+                    Line::from(Span::styled(
+                        line,
+                        Style::default().fg(Color::Green).bg(Color::Rgb(20, 40, 20)),
+                    ))
+                } else if line.starts_with('-') && !line.starts_with("---") {
+                    Line::from(Span::styled(
+                        line,
+                        Style::default().fg(Color::Red).bg(Color::Rgb(50, 20, 20)),
+                    ))
+                } else if line.starts_with("@@") {
+                    Line::from(Span::styled(
+                        line,
+                        Style::default()
+                            .fg(Color::Cyan)
+                            .add_modifier(Modifier::BOLD),
+                    ))
+                } else if line.starts_with("diff ") || line.starts_with("index ") {
+                    Line::from(Span::styled(line, Style::default().fg(Color::Yellow)))
+                } else if line.starts_with("---") || line.starts_with("+++") {
+                    Line::from(Span::styled(
+                        line,
+                        Style::default()
+                            .fg(Color::White)
+                            .add_modifier(Modifier::BOLD),
+                    ))
+                } else {
+                    Line::from(Span::styled(line, Style::default().fg(Color::Gray)))
+                }
+            })
+            .collect();
+
+        let diff_paragraph =
+            Paragraph::new(lines).style(Style::default().bg(Color::Rgb(30, 30, 35)));
+        f.render_widget(diff_paragraph, chunks[1]);
     }
 
     fn render_file_content_view(&self, f: &mut Frame, area: Rect) {
@@ -483,8 +623,8 @@ impl StatusView {
         // Split help text into 2 lines
         let (line1, line2) = match self.current_view {
             RightPanelView::Banner => (
-                "j/k: Navigate | Enter: View File | a: Stage | s: Unstage | r: Restore",
-                "A/S/R: All | c: Commit | q: Quit",
+                "j/k: Navigate | Ctrl+d/u: Scroll | a: Stage | s: Unstage | r: Restore",
+                "A/S/R: All | c: Commit | Enter: View File | q: Quit",
             ),
             RightPanelView::FileContent => (
                 "j/k: Navigate | Esc: Back | a: Stage | s: Unstage | r: Restore",
@@ -571,6 +711,8 @@ pub fn run_status_view(repo: &Repository) -> Result<()> {
                 if view.selected_file_index >= view.files.len() && !view.files.is_empty() {
                     view.selected_file_index = view.files.len() - 1;
                 }
+                // Reload diff for current file
+                view.load_file_diff();
             }
         }
     }

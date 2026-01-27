@@ -166,11 +166,7 @@ pub fn render_conflict_view(frame: &mut Frame, state: &AppState, area: Rect) {
                 .add_modifier(Modifier::BOLD),
         ),
         Span::styled("=conflicts ", Style::default().fg(Color::White)),
-        Span::styled(
-            "s",
-            save_style
-                .add_modifier(Modifier::BOLD),
-        ),
+        Span::styled("s", save_style.add_modifier(Modifier::BOLD)),
         Span::styled("=save ", Style::default().fg(Color::White)),
         Span::styled(
             save_text,
