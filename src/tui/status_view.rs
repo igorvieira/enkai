@@ -1,5 +1,6 @@
 use anyhow::Result;
 use crossterm::{
+    cursor,
     event::{self, Event, KeyCode, KeyEvent},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
@@ -9,7 +10,8 @@ use ratatui::{
     backend::CrosstermBackend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
-    widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
+    text::{Line, Span},
+    widgets::{Block, List, ListItem, ListState, Paragraph},
     Frame, Terminal,
 };
 use std::io;
@@ -231,7 +233,7 @@ impl StatusView {
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Min(0),    // Main content
-                Constraint::Length(3), // Help
+                Constraint::Length(4), // Help (2 lines + 2 rows padding)
             ])
             .split(main_chunks[1]);
 
@@ -252,16 +254,14 @@ impl StatusView {
     }
 
     fn render_file_list(&mut self, f: &mut Frame, area: Rect) {
+        // Render background - same as code view in conflict manager
+        let bg = Block::default().style(Style::default().bg(Color::Rgb(40, 40, 45)));
+        f.render_widget(bg, area);
+
         if self.files.is_empty() {
             let empty = Paragraph::new("No changes")
                 .style(Style::default().fg(Color::Gray))
-                .alignment(Alignment::Center)
-                .block(
-                    Block::default()
-                        .title("Changed Files")
-                        .borders(Borders::ALL)
-                        .border_style(Style::default().fg(Color::Magenta)),
-                );
+                .alignment(Alignment::Center);
             f.render_widget(empty, area);
             return;
         }
@@ -366,16 +366,7 @@ impl StatusView {
         let mut state = ListState::default();
         state.select(Some(self.selected_file_index));
 
-        let title = format!("Changed Files ({})", self.files.len());
-
-        let list = List::new(items)
-            .block(
-                Block::default()
-                    .title(title)
-                    .borders(Borders::ALL)
-                    .border_style(Style::default().fg(Color::Magenta)),
-            )
-            .highlight_style(Style::default().add_modifier(Modifier::BOLD));
+        let list = List::new(items).highlight_style(Style::default().add_modifier(Modifier::BOLD));
 
         f.render_stateful_widget(list, area, &mut state);
     }
@@ -402,9 +393,6 @@ impl StatusView {
     }
 
     fn render_file_content_view(&self, f: &mut Frame, area: Rect) {
-        let file = &self.files[self.selected_file_index];
-        let title = format!("File: {}", file.path.display());
-
         let content_text = if let Some(ref content) = self.file_content {
             content.clone()
         } else {
@@ -413,106 +401,121 @@ impl StatusView {
 
         let paragraph = Paragraph::new(content_text)
             .style(Style::default().fg(Color::White))
-            .block(
-                Block::default()
-                    .title(title)
-                    .borders(Borders::ALL)
-                    .border_style(Style::default().fg(Color::Cyan)),
-            )
             .wrap(ratatui::widgets::Wrap { trim: false });
 
         f.render_widget(paragraph, area);
     }
 
     fn render_commit_modal(&self, f: &mut Frame, area: Rect) {
-        // Create centered modal
-        let modal_width = 60;
-        let modal_height = 9;
-
-        let horizontal_margin = (area.width.saturating_sub(modal_width)) / 2;
-        let vertical_margin = (area.height.saturating_sub(modal_height)) / 2;
-
-        let modal_area = Rect {
-            x: area.x + horizontal_margin,
-            y: area.y + vertical_margin,
-            width: modal_width.min(area.width),
-            height: modal_height.min(area.height),
-        };
-
-        // Create input field text
-        let input_text = if self.commit_message.is_empty() {
-            "Enter commit message...".to_string()
-        } else {
-            self.commit_message.clone()
-        };
-
-        let input_style = if self.commit_message.is_empty() {
-            Style::default().fg(Color::DarkGray)
-        } else {
-            Style::default().fg(Color::White)
-        };
-
-        // Split modal into sections
-        let modal_chunks = Layout::default()
+        // Split into sections (no borders, like rebase actions)
+        let chunks = Layout::default()
             .direction(Direction::Vertical)
-            .margin(1)
             .constraints([
-                Constraint::Length(3), // Input field
+                Constraint::Length(3), // Header
+                Constraint::Length(1), // Input area (1 row for text and cursor)
                 Constraint::Length(1), // Error message
-                Constraint::Length(1), // Help text
+                Constraint::Min(0),    // Spacer
+                Constraint::Length(2), // Footer help
             ])
-            .split(modal_area);
+            .split(area);
 
-        // Render input field
-        let input = Paragraph::new(input_text).style(input_style).block(
-            Block::default()
-                .title("Commit Message")
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::Magenta)),
-        );
-        f.render_widget(input, modal_chunks[0]);
-
-        // Render error message if present
-        if let Some(ref error) = self.commit_error {
-            let error_msg = Paragraph::new(error.as_str()).style(Style::default().fg(Color::Red));
-            f.render_widget(error_msg, modal_chunks[1]);
-        }
-
-        // Render help text
-        let help = Paragraph::new("Enter: Commit | Esc: Cancel")
-            .style(Style::default().fg(Color::Gray))
-            .alignment(Alignment::Center);
-        f.render_widget(help, modal_chunks[2]);
-
-        // Render modal border
-        let modal_block = Block::default()
-            .title("Commit Changes")
-            .borders(Borders::ALL)
-            .border_style(
+        // Header - no borders
+        let header = Paragraph::new(vec![
+            Line::from(Span::styled(
+                "Commit Changes",
                 Style::default()
                     .fg(Color::Magenta)
                     .add_modifier(Modifier::BOLD),
-            )
-            .style(Style::default().bg(Color::Black));
-        f.render_widget(modal_block, modal_area);
+            )),
+            Line::from(""),
+            Line::from(Span::styled(
+                "Enter your commit message:",
+                Style::default().fg(Color::White),
+            )),
+        ])
+        .alignment(Alignment::Center);
+        f.render_widget(header, chunks[0]);
+
+        // Input field - no borders
+        let input_text = if self.commit_message.is_empty() {
+            "> ".to_string()
+        } else {
+            format!("> {}", self.commit_message)
+        };
+
+        let input_style = Style::default().fg(Color::White);
+
+        let input = Paragraph::new(input_text)
+            .style(input_style)
+            .alignment(Alignment::Center);
+        f.render_widget(input, chunks[1]);
+
+        // Render error message if present
+        if let Some(ref error) = self.commit_error {
+            let error_msg = Paragraph::new(error.as_str())
+                .style(Style::default().fg(Color::Red))
+                .alignment(Alignment::Center);
+            f.render_widget(error_msg, chunks[2]);
+        }
+
+        // Footer - no borders
+        let footer = Paragraph::new(Line::from(vec![
+            Span::styled(
+                "Enter",
+                Style::default()
+                    .fg(Color::Magenta)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled("=Commit  ", Style::default().fg(Color::Gray)),
+            Span::styled(
+                "Esc",
+                Style::default()
+                    .fg(Color::Magenta)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled("=Cancel", Style::default().fg(Color::Gray)),
+        ]))
+        .alignment(Alignment::Center);
+        f.render_widget(footer, chunks[4]);
     }
 
     fn render_help(&self, f: &mut Frame, area: Rect) {
-        let help_text = match self.current_view {
-            RightPanelView::Banner => "j/k: Navigate | Enter: View File | a: Stage | s: Unstage | r: Restore | A/S/R: All | c: Commit | q: Quit",
-            RightPanelView::FileContent => "j/k: Navigate | Esc: Back | a: Stage | s: Unstage | r: Restore | A/S/R: All | c: Commit | q: Quit",
-            RightPanelView::CommitModal => "Type message | Enter: Commit | Esc: Cancel",
+        // Fill the entire footer area with background color first (matching conflict manager)
+        let background =
+            Paragraph::new("").style(Style::default().bg(Color::Rgb(60, 60, 70))); // FOOTER_BG
+        f.render_widget(background, area);
+
+        // Create layout with 2 rows of padding at the bottom
+        let help_chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(2), // Help text (2 lines)
+                Constraint::Length(2), // Bottom padding (2 rows)
+            ])
+            .split(area);
+
+        // Split help text into 2 lines
+        let (line1, line2) = match self.current_view {
+            RightPanelView::Banner => (
+                "j/k: Navigate | Enter: View File | a: Stage | s: Unstage | r: Restore",
+                "A/S/R: All | c: Commit | q: Quit",
+            ),
+            RightPanelView::FileContent => (
+                "j/k: Navigate | Esc: Back | a: Stage | s: Unstage | r: Restore",
+                "A/S/R: All | c: Commit | q: Quit",
+            ),
+            RightPanelView::CommitModal => (
+                "Type message | Enter: Commit | Esc: Cancel",
+                "",
+            ),
         };
 
-        let help = Paragraph::new(help_text)
-            .style(Style::default().fg(Color::Gray))
-            .alignment(Alignment::Center)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_style(Style::default().fg(Color::DarkGray)),
-            );
-        f.render_widget(help, area);
+        let help = Paragraph::new(vec![
+            Line::from(Span::styled(line1, Style::default().fg(Color::White))),
+            Line::from(Span::styled(line2, Style::default().fg(Color::White))),
+        ])
+        .alignment(Alignment::Center);
+        f.render_widget(help, help_chunks[0]);
     }
 }
 
@@ -520,7 +523,7 @@ pub fn run_status_view(repo: &Repository) -> Result<()> {
     // Setup terminal
     enable_raw_mode()?;
     let mut stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen)?;
+    execute!(stdout, EnterAlternateScreen, cursor::Hide)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
@@ -529,7 +532,47 @@ pub fn run_status_view(repo: &Repository) -> Result<()> {
     let mut should_quit = false;
 
     while !should_quit {
-        terminal.draw(|f| view.render(f))?;
+        terminal.draw(|f| {
+            view.render(f);
+
+            // Position cursor for commit modal
+            if view.current_view == RightPanelView::CommitModal {
+                let area = f.size();
+                // Recalculate the modal layout to get input chunk position
+                let chunks = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([
+                        Constraint::Length(3), // Header
+                        Constraint::Length(1), // Input area (1 row for text and cursor)
+                        Constraint::Length(1), // Error message
+                        Constraint::Min(0),    // Spacer
+                        Constraint::Length(2), // Footer help
+                    ])
+                    .split(area);
+                
+                let input_chunk = chunks[1];
+                // Input area is now 1 row, so text and cursor are on the same line
+                let input_y = input_chunk.y;
+                
+                // Calculate X position to match Paragraph center alignment exactly
+                let prompt_len = 2; // "> "
+                let text_len = view.commit_message.len() as u16;
+                let total_text_len = prompt_len + text_len;
+                // Paragraph centers text: text starts at x + (width - text_len) / 2
+                // Cursor should be at the end of the text: start + text_len
+                let text_start_x = input_chunk.x + (input_chunk.width.saturating_sub(total_text_len)) / 2;
+                let cursor_x = text_start_x + total_text_len;
+
+                f.set_cursor(cursor_x, input_y);
+            }
+        })?;
+
+        // Show/hide cursor based on view
+        if view.current_view == RightPanelView::CommitModal {
+            execute!(terminal.backend_mut(), cursor::Show)?;
+        } else {
+            execute!(terminal.backend_mut(), cursor::Hide)?;
+        }
 
         if let Event::Key(key) = event::read()? {
             let (quit, refresh) = view.handle_key(key)?;
