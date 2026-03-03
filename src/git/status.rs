@@ -146,3 +146,133 @@ pub fn get_repository_status(repo: &Repository) -> Result<Vec<FileStatus>> {
 
     Ok(file_statuses)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_status_change_icons() {
+        assert_eq!(StatusChange::Modified.icon(), "M");
+        assert_eq!(StatusChange::Added.icon(), "A");
+        assert_eq!(StatusChange::Deleted.icon(), "D");
+        assert_eq!(StatusChange::Renamed.icon(), "R");
+        assert_eq!(StatusChange::Untracked.icon(), "?");
+        assert_eq!(StatusChange::Conflicted.icon(), "C");
+    }
+
+    #[test]
+    fn test_file_status_type_icons() {
+        assert_eq!(FileStatusType::Modified.icon(), "M");
+        assert_eq!(FileStatusType::Added.icon(), "A");
+        assert_eq!(FileStatusType::Deleted.icon(), "D");
+        assert_eq!(FileStatusType::Renamed.icon(), "R");
+        assert_eq!(FileStatusType::Untracked.icon(), "?");
+        assert_eq!(FileStatusType::Conflicted.icon(), "C");
+    }
+
+    #[test]
+    fn test_file_status_display_staged_only() {
+        let status = FileStatus {
+            path: PathBuf::from("test.rs"),
+            index_status: Some(StatusChange::Modified),
+            workdir_status: None,
+        };
+        assert_eq!(status.display_status(), "M ");
+    }
+
+    #[test]
+    fn test_file_status_display_unstaged_only() {
+        let status = FileStatus {
+            path: PathBuf::from("test.rs"),
+            index_status: None,
+            workdir_status: Some(StatusChange::Modified),
+        };
+        assert_eq!(status.display_status(), " M");
+    }
+
+    #[test]
+    fn test_file_status_display_both() {
+        let status = FileStatus {
+            path: PathBuf::from("test.rs"),
+            index_status: Some(StatusChange::Added),
+            workdir_status: Some(StatusChange::Modified),
+        };
+        assert_eq!(status.display_status(), "AM");
+    }
+
+    #[test]
+    fn test_file_status_is_staged() {
+        let staged = FileStatus {
+            path: PathBuf::from("test.rs"),
+            index_status: Some(StatusChange::Modified),
+            workdir_status: None,
+        };
+        assert!(staged.is_staged());
+
+        let unstaged = FileStatus {
+            path: PathBuf::from("test.rs"),
+            index_status: None,
+            workdir_status: Some(StatusChange::Modified),
+        };
+        assert!(!unstaged.is_staged());
+    }
+
+    #[test]
+    fn test_file_status_is_modified_in_workdir() {
+        let modified = FileStatus {
+            path: PathBuf::from("test.rs"),
+            index_status: None,
+            workdir_status: Some(StatusChange::Modified),
+        };
+        assert!(modified.is_modified_in_workdir());
+
+        let staged_only = FileStatus {
+            path: PathBuf::from("test.rs"),
+            index_status: Some(StatusChange::Modified),
+            workdir_status: None,
+        };
+        assert!(!staged_only.is_modified_in_workdir());
+    }
+
+    #[test]
+    fn test_file_status_is_conflicted_index() {
+        let conflicted = FileStatus {
+            path: PathBuf::from("test.rs"),
+            index_status: Some(StatusChange::Conflicted),
+            workdir_status: None,
+        };
+        assert!(conflicted.is_conflicted());
+    }
+
+    #[test]
+    fn test_file_status_is_conflicted_workdir() {
+        let conflicted = FileStatus {
+            path: PathBuf::from("test.rs"),
+            index_status: None,
+            workdir_status: Some(StatusChange::Conflicted),
+        };
+        assert!(conflicted.is_conflicted());
+    }
+
+    #[test]
+    fn test_file_status_not_conflicted() {
+        let normal = FileStatus {
+            path: PathBuf::from("test.rs"),
+            index_status: Some(StatusChange::Modified),
+            workdir_status: Some(StatusChange::Modified),
+        };
+        assert!(!normal.is_conflicted());
+    }
+
+    #[test]
+    fn test_file_status_type_colors() {
+        // Just verify that colors return valid ANSI escape codes
+        assert!(FileStatusType::Modified.color().starts_with("\x1b["));
+        assert!(FileStatusType::Added.color().starts_with("\x1b["));
+        assert!(FileStatusType::Deleted.color().starts_with("\x1b["));
+        assert!(FileStatusType::Renamed.color().starts_with("\x1b["));
+        assert!(FileStatusType::Untracked.color().starts_with("\x1b["));
+        assert!(FileStatusType::Conflicted.color().starts_with("\x1b["));
+    }
+}

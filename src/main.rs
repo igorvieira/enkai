@@ -1,8 +1,9 @@
 use anyhow::{Context, Result};
 use clap::Parser;
+use murasaki_rs::git::get_repository_status;
 use murasaki_rs::{
-    detect_git_operation, find_conflicted_files, parse_conflicts, run_app, run_status_view,
-    AppState,
+    check_for_updates, detect_git_operation, find_conflicted_files, parse_conflicts, run_app,
+    AppState, UpdateInfo,
 };
 
 #[derive(Parser, Debug)]
@@ -14,8 +15,29 @@ struct Args {
     files: Vec<String>,
 }
 
+fn print_update_notification(update_info: &UpdateInfo) {
+    let current = &update_info.current_version;
+    let latest = &update_info.latest_version;
+
+    eprintln!("╭─────────────────────────────────────────────────────────╮");
+    eprintln!("│  A new version of saki is available!                    │");
+    eprintln!(
+        "│  Current: {:<10} →  Latest: {:<10}              │",
+        current, latest
+    );
+    eprintln!("│                                                         │");
+    eprintln!("│  Run: cargo install murasaki_rs                         │");
+    eprintln!("╰─────────────────────────────────────────────────────────╯");
+    eprintln!();
+}
+
 fn main() -> Result<()> {
     let args = Args::parse();
+
+    // Check for updates at startup (non-blocking with 3s timeout)
+    if let Some(update_info) = check_for_updates() {
+        print_update_notification(&update_info);
+    }
 
     // Open git repository
     let repo =
@@ -80,12 +102,50 @@ fn main() -> Result<()> {
             return Ok(());
         }
 
-        // Create app state and run
+        // Create app state in conflict mode and run
         let state = AppState::new(conflicted_files, operation);
         run_app(state)?;
     } else {
-        // No git operation in progress, show status view
-        run_status_view(&repo)?;
+        // No git operation in progress, run in staging mode
+        let file_statuses = get_repository_status(&repo)?;
+
+        // Create app state in staging mode
+        let mut state = AppState::new_staging(file_statuses);
+
+        // Load diff for the first file if there are any files
+        if !state.file_statuses.is_empty() {
+            load_initial_diff(&mut state)?;
+        }
+
+        run_app(state)?;
+    }
+
+    Ok(())
+}
+
+fn load_initial_diff(state: &mut AppState) -> Result<()> {
+    use murasaki_rs::git::get_file_diff;
+
+    if let Some(file_status) = state.current_file_status() {
+        let path = file_status.path.to_string_lossy();
+        let staged = file_status.is_staged() && !file_status.is_modified_in_workdir();
+
+        match get_file_diff(&path, staged) {
+            Ok(diff) => {
+                if diff.is_empty() {
+                    if let Ok(content) = std::fs::read_to_string(&file_status.path) {
+                        state.diff_content = Some(format!("New file:\n\n{}", content));
+                    } else {
+                        state.diff_content = Some("No changes to display".to_string());
+                    }
+                } else {
+                    state.diff_content = Some(diff);
+                }
+            }
+            Err(e) => {
+                state.diff_content = Some(format!("Error getting diff: {}", e));
+            }
+        }
     }
 
     Ok(())
